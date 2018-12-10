@@ -2,6 +2,7 @@ import * as React from "react";
 import {Image, View} from "react-native";
 import Video from "react-native-video";
 import {IconButton} from "../components/buttons/IconButton";
+import {displayAudioPlayerNotifControl} from "../local-notification-push/LNP";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 
 interface AudioStreamData {
@@ -54,6 +55,7 @@ export class AudioPlayer extends React.Component<{}, State> {
                 <Image
                     source={{uri: logoUri}}
                     style={{height: 400, width: 600}}
+                    resizeMethod="auto"
                 />
                 <View
                     style={{
@@ -63,7 +65,7 @@ export class AudioPlayer extends React.Component<{}, State> {
                     }}
                 >
                     <IconButton
-                        iconName={"stepbackward"}
+                        iconName={"chevron-left"}
                         color={COLOR_SECONDARY}
                         backgroundColor={COLOR_PRIMARY}
                         onPress={this.onPreviousButtonPress}
@@ -80,7 +82,7 @@ export class AudioPlayer extends React.Component<{}, State> {
                     />
                     <View style={{flex: 0.1}}/>
                     <IconButton
-                        iconName={"controller-next"}
+                        iconName={"chevron-right"}
                         color={COLOR_SECONDARY}
                         backgroundColor={COLOR_PRIMARY}
                         onPress={this.onNextButtonPress}
@@ -102,18 +104,40 @@ export class AudioPlayer extends React.Component<{}, State> {
         );
     }
 
-    private onMediaReady = () => this.setState({loading: false});
+    private onMediaReady = () => {
+        this.setState({loading: false});
+        this.updateControlNotif(true);
+    };
     private onLoadStart = () => this.setState({loading: true});
-    private onBuffering = () => this.setState({loading: true});
+    private onBuffering = () => {
+        this.setState({loading: true});
+    };
 
     private onRef = (ref: Video) => this.playerRef = ref;
 
-    private onPausePlayButtonPress = () => this.setState((prevState) => ({paused: !prevState.paused}));
-    private onNextButtonPress = () => this.setState((prevState) =>
-        ({currentStream: (prevState.currentStream + 1) >= prevState.streams.length ? 0 : prevState.currentStream + 1}));
-    private onPreviousButtonPress = () => this.setState((prevState) =>
-        ({currentStream: (prevState.currentStream - 1) < 0 ? prevState.streams.length - 1 : prevState.currentStream - 1}));
+    private onPausePlayButtonPress = () => this.setState((prevState) => {
+        const paused = !prevState.paused;
+        this.updateControlNotif(paused);
+        return {paused};
+    });
+    private onNextButtonPress = () => {
+        this.setState((prevState) =>
+            ({currentStream: (prevState.currentStream + 1) >= prevState.streams.length ? 0 : prevState.currentStream + 1}));
+        this.updateControlNotif(false);
+    };
+    private onPreviousButtonPress = () => {
+        this.setState((prevState) =>
+            ({currentStream: (prevState.currentStream - 1) < 0 ? prevState.streams.length - 1 : prevState.currentStream - 1}));
+        this.updateControlNotif(false);
+    };
 
     private onError = () => {
+        // TODO display error on both notif and screen.
+        this.updateControlNotif(false);
+    };
+
+    private updateControlNotif = (playing: boolean) => {
+        const {stationName}: AudioStreamData = this.state.streams[this.state.currentStream];
+        displayAudioPlayerNotifControl(stationName, `["${playing ? "pause" : "play"}"]`);
     };
 }
