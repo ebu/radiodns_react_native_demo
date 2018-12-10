@@ -1,62 +1,119 @@
 import * as React from "react";
-import {Image, StyleSheet} from "react-native";
+import {Image, View} from "react-native";
 import Video from "react-native-video";
-import {PaddedView} from "../views/PaddedView";
+import {IconButton} from "../components/buttons/IconButton";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
+
+interface AudioStreamData {
+    stationName: string;
+    uri: string;
+    logoUri: string;
+}
 
 interface State {
-    videoUri: string | null;
+    streams: AudioStreamData[];
+    currentStream: number;
+    loading: boolean;
+    paused: boolean;
 }
 
 export class AudioPlayer extends React.Component<{}, State> {
 
     public readonly state: State = {
-        videoUri: "",
+        streams: [
+            {
+                stationName: "7radio",
+                uri: "http://178.32.107.33/7radio-192k.mp3",
+                logoUri: "http://static.zzebu.dev.staging-radiodns.com/600x600/f4276e30-6a9c-47ef-b13b-883741ab722a.png",
+            },
+            {
+                stationName: "Rouge fm",
+                uri: "http://rougefm.ice.infomaniak.ch/rougefm-high.mp3",
+                logoUri: "https://upload.wikimedia.org/wikipedia/fr/9/92/Rouge_FM_2011_logo.png",
+            },
+        ],
+        currentStream: 0,
+        loading: true,
+        paused: false,
     };
 
-    private player: Video;
+    // @ts-ignore
+    private playerRef: Video;
 
     public render() {
+        const {uri, logoUri}: AudioStreamData = this.state.streams[this.state.currentStream];
         return (
-            <PaddedView>
+            <View
+                style={{
+                    flex: 1,
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
                 <Image
-                    source={{uri: "http://static.zzebu.dev.staging-radiodns.com/600x" +
-                        "600/f4276e30-6a9c-47ef-b13b-883741ab722a.png"}}
+                    source={{uri: logoUri}}
+                    style={{height: 400, width: 600}}
                 />
+                <View
+                    style={{
+                        flexDirection: "row",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <IconButton
+                        iconName={"stepbackward"}
+                        color={COLOR_SECONDARY}
+                        backgroundColor={COLOR_PRIMARY}
+                        onPress={this.onPreviousButtonPress}
+                    />
+                    <View style={{flex: 0.1}}/>
+                    <IconButton
+                        big
+                        withBorder
+                        iconName={this.state.paused ? "chevron-right" : "pause"}
+                        disabled={this.state.loading}
+                        color={COLOR_SECONDARY}
+                        backgroundColor={COLOR_PRIMARY}
+                        onPress={this.onPausePlayButtonPress}
+                    />
+                    <View style={{flex: 0.1}}/>
+                    <IconButton
+                        iconName={"controller-next"}
+                        color={COLOR_SECONDARY}
+                        backgroundColor={COLOR_PRIMARY}
+                        onPress={this.onNextButtonPress}
+                    />
+                </View>
                 <Video
-                    source={{uri: this.state.videoUri}}   // Can be a URL or a local file.
-                    ref={this.onRef}                      // Store reference
-                    onBuffer={this.onBuffer}              // Callback when remote video is buffering
-                    onError={this.videoError}             // Callback when video cannot be loaded
-                    style={styles.audioPlayer}
+                    ref={this.onRef}
+                    allowsExternalPlayback
+                    source={{uri}}   // Can be a URL or a local file.
+                    onBuffer={this.onBuffering}                // Callback when remote video is buffering
+                    onError={this.onError}               // Callback when video cannot be loaded
+                    style={{display: "none"}}
+                    onLoad={this.onMediaReady}
+                    onLoadStart={this.onLoadStart}
+                    playInBackground
+                    paused={this.state.paused}
                 />
-            </PaddedView>
+            </View>
         );
     }
 
-    public componentDidMount() {
-        console.log("PLAYER", this.player)
-    }
+    private onMediaReady = () => this.setState({loading: false});
+    private onLoadStart = () => this.setState({loading: true});
+    private onBuffering = () => this.setState({loading: true});
 
-    private onRef = (ref: Video) => this.player = ref;
+    private onRef = (ref: Video) => this.playerRef = ref;
 
-    private onBuffer = () => {
-    };
+    private onPausePlayButtonPress = () => this.setState((prevState) => ({paused: !prevState.paused}));
+    private onNextButtonPress = () => this.setState((prevState) =>
+        ({currentStream: (prevState.currentStream + 1) >= prevState.streams.length ? 0 : prevState.currentStream + 1}));
+    private onPreviousButtonPress = () => this.setState((prevState) =>
+        ({currentStream: (prevState.currentStream - 1) < 0 ? prevState.streams.length - 1 : prevState.currentStream - 1}));
 
-    private videoError = () => {
+    private onError = () => {
     };
 }
-
-const styles = StyleSheet.create({
-    audioPlayer:  {
-        position:  "absolute",
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
-    },
-    loadingThing: {
-        position:  "absolute",
-        top: "50%",
-        left: "50%",
-    },
-});

@@ -1,26 +1,24 @@
 import * as React from "react";
-import {StyleSheet, View} from "react-native";
-import {getSpi} from "../services/http";
+import {View} from "react-native";
+import {COLOR_PRIMARY} from "../styles";
 import {AudioPlayer} from "./AudioPlayer";
-
 
 export default class App extends React.Component {
 
-    public async componentWillMount() {
-        this.setState({serviceInformation: await getSpi()});
-    }
+    // public async componentWillMount() {
+    //     this.setState({serviceInformation: await getSpi()});
+    // }
 
     public render() {
         return (
-            <View style={styles.container}>
+            <View
+                style={{
+                    flex: 1,
+                    backgroundColor: COLOR_PRIMARY,
+                }}
+            >
                 <AudioPlayer/>
             </View>
         );
     }
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-});
