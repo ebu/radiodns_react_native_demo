@@ -1,0 +1,14 @@
+{
+  "extends": [
+    "tslint:latest",
+    "tslint-react"
+  ],
+  "rules": {
+    "no-console": false,
+    "interface-name": false,
+    "semicolon": false,
+    "jsx-no-multiline-js": false,
+    "object-literal-sort-keys": false,
+    "no-empty": false
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "radiodns_react_native_techincal_demo",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "run:android": "react-native run-android",
+    "run:ios": "react-native run-ios",
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "start:android": "npm run build && run-p build:watch run:android",
+    "start:ios": "npm run build && run-p build:watch run:ios",
+    "test": "jest"
+  },
+  "dependencies": {
+    "buffer": "5.2.1",
+    "react": "16.6.1",
+    "react-native": "0.57.5",
+    "react-native-elements": "1.0.0-beta7",
+    "react-native-vector-icons": "6.1.0",
+    "react-native-video": "4.0.0",
+    "stream": "0.0.2",
+    "xml-js": "1.6.8"
+  },
+  "devDependencies": {
+    "@types/react": "16.7.6",
+    "@types/react-native": "0.57.12",
+    "@types/react-native-video": "2.0.8",
+    "@types/xml-js": "1.0.0",
+    "babel-jest": "23.6.0",
+    "jest": "23.6.0",
+    "metro-react-native-babel-preset": "0.49.2",
+    "npm-run-all": "4.1.3",
+    "react-test-renderer": "16.6.1",
+    "tslint": "5.11.0",
+    "tslint-react": "3.6.0",
+    "typescript": "3.1.6"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
