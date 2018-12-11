@@ -1,14 +1,22 @@
 import * as React from "react"
 import {ActivityIndicator, View} from "react-native";
-import Video from "react-native-video";
+import Video, {LoadError} from "react-native-video";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {AudioStreamData} from "../../models/streams-models";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {setNextStream, setPreviousStream, setStreamLoadingState, setStreamPausedState} from "../../reducers/streams";
+import {
+    setErrorStream,
+    setNextStream,
+    setPreviousStream,
+    setStreamLoadingState,
+    setStreamPausedState,
+} from "../../reducers/streams";
 import {displayAudioPlayerNotifControl} from "../../services/LNP";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../styles";
 import {IconButton} from "../buttons/IconButton";
+import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
+import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
 
 interface Props {
     // injected props
@@ -20,6 +28,7 @@ interface Props {
     onPreviousPressed?: () => void;
     setStreamPausedState?: (paused: boolean) => void;
     setStreamLoadingState?: (loading: boolean) => void;
+    setErrorStream?: (loading: boolean) => void;
 }
 
 class MediaPlayerContainer extends React.Component<Props> {
@@ -38,12 +47,7 @@ class MediaPlayerContainer extends React.Component<Props> {
                         alignItems: "center",
                     }}
                 >
-                    <IconButton
-                        iconName={"chevron-left"}
-                        color={COLOR_SECONDARY}
-                        backgroundColor={COLOR_PRIMARY}
-                        onPress={this.onPreviousButtonPress}
-                    />
+                    <MediaPlayNextButton color={COLOR_SECONDARY} backgroundColor={COLOR_PRIMARY}/>
                     <View style={{flex: 0.1}}/>
                     {!this.props.loading && <IconButton
                         big
@@ -53,14 +57,10 @@ class MediaPlayerContainer extends React.Component<Props> {
                         backgroundColor={COLOR_PRIMARY}
                         onPress={this.onPausePlayButtonPress}
                     />}
-                    {this.props.loading && <ActivityIndicator size="large" style={{width: 80, height: 80}} color={COLOR_SECONDARY}/>}
+                    {this.props.loading &&
+                    <ActivityIndicator size="large" style={{width: 80, height: 80}} color={COLOR_SECONDARY}/>}
                     <View style={{flex: 0.1}}/>
-                    <IconButton
-                        iconName={"chevron-right"}
-                        color={COLOR_SECONDARY}
-                        backgroundColor={COLOR_PRIMARY}
-                        onPress={this.onNextButtonPress}
-                    />
+                    <MediaPlayPreviousButton color={COLOR_SECONDARY} backgroundColor={COLOR_PRIMARY}/>
                 </View>
                 <Video
                     ref={this.onRef}
@@ -106,20 +106,11 @@ class MediaPlayerContainer extends React.Component<Props> {
         this.props.setStreamPausedState(paused);
     };
 
-    private onNextButtonPress = () => {
-        this.props.onNextPressed();
-        this.updateControlNotif(false);
-    };
-
-    private onPreviousButtonPress = () => {
-        this.props.onPreviousPressed();
-        this.updateControlNotif(false);
-    };
-
-    private onError = () => {
+    private onError = (e: LoadError) => {
         // TODO display error on both notif and screen.
-        this.props.setStreamPausedState(true);
+        this.props.setErrorStream(true);
         this.updateControlNotif(false);
+        console.error(e.error)
     };
 
     private updateControlNotif = (playing: boolean) => {
@@ -140,5 +131,6 @@ export const MediaPlayer = connect(
         onPreviousPressed: () => dispatch(setPreviousStream()),
         setStreamPausedState: (paused: boolean) => dispatch(setStreamPausedState(paused)),
         setStreamLoadingState: (loading: boolean) => dispatch(setStreamLoadingState(loading)),
+        setErrorStream: (error: boolean) => dispatch(setErrorStream(error)),
     })),
 )(MediaPlayerContainer);

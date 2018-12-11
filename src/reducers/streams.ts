@@ -23,6 +23,10 @@ interface StreamsSetPaused extends Action<typeof SET_PAUSED> {
     paused: boolean;
 }
 
+interface StreamsSetError extends Action<typeof SET_ERROR> {
+    error: boolean;
+}
+
 interface StreamsSetVolume extends Action<typeof SET_VOLUME> {
     volume: number;
 }
@@ -33,7 +37,8 @@ type StreamsActions = StreamsLoadAction
     | StreamsSetPaused
     | Action<typeof SET_ACTIVE_NEXT>
     | Action<typeof SET_ACTIVE_PREVIOUS>
-    | StreamsSetVolume;
+    | StreamsSetVolume
+    | StreamsSetError;
 
 export interface StreamsReducerState {
     streams: AudioStreamData[];
@@ -42,6 +47,7 @@ export interface StreamsReducerState {
     paused: boolean;
     index: number;
     volume: number; // [0, 1] float
+    error: boolean;
 }
 
 export const STREAMS_REDUCER_DEFAULT_STATE: StreamsReducerState = {
@@ -51,6 +57,7 @@ export const STREAMS_REDUCER_DEFAULT_STATE: StreamsReducerState = {
     paused: false,
     index: 0,
     volume: 1,
+    error: false,
 };
 
 // Actions
@@ -61,6 +68,7 @@ const SET_PAUSED = "radiodns_react_native_technical_demo/streams/SET_PAUSED";
 const SET_ACTIVE_NEXT = "radiodns_react_native_technical_demo/streams/SET_ACTIVE_NEXT";
 const SET_ACTIVE_PREVIOUS = "radiodns_react_native_technical_demo/streams/SET_ACTIVE_PREVIOUS";
 const SET_VOLUME = "radiodns_react_native_technical_demo/streams/SET_VOLUME";
+const SET_ERROR = "radiodns_react_native_technical_demo/streams/SET_ERROR";
 
 // Reducer
 const setNewIndexHelper = (state: StreamsReducerState, updateFn: (state: StreamsReducerState) => number) => {
@@ -86,21 +94,22 @@ const getIndexFromActive = (state: StreamsReducerState) => {
 
 export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STATE, action: StreamsActions): StreamsReducerState {
     switch (action.type) {
-        case LOAD: {
+        case LOAD:
             return {...state, streams: Array.from(action.streams)};
-        }
         case SET_ACTIVE:
-            return setNewIndexHelper({...state, activeStream: action.activeStream}, getIndexFromActive);
+            return setNewIndexHelper({...state, activeStream: action.activeStream, error: false}, getIndexFromActive);
         case SET_LOADING:
-            return {...state, loading: action.loading};
+            return {...state, loading: action.loading, error: false};
         case SET_PAUSED:
             return {...state, paused: action.paused};
         case SET_ACTIVE_NEXT:
-            return setNewIndexHelper(state, (s) => s.index + 1 < s.streams.length ? s.index + 1 : 0);
+            return setNewIndexHelper({...state, error: false}, (s) => s.index + 1 < s.streams.length ? s.index + 1 : 0);
         case SET_ACTIVE_PREVIOUS:
-            return setNewIndexHelper(state, (s) => s.index - 1 >= 0 ? s.index - 1 : s.streams.length - 1);
+            return setNewIndexHelper({...state, error: false}, (s) => s.index - 1 >= 0 ? s.index - 1 : s.streams.length - 1);
         case SET_VOLUME:
             return {...state, volume: action.volume};
+        case SET_ERROR:
+            return {...state, error: action.error};
         default:
             return state;
     }
@@ -151,5 +160,12 @@ export const setVolumeStream: (volume: number) => StreamsSetVolume = (volume) =>
     return {
         type: SET_VOLUME,
         volume,
+    };
+};
+
+export const setErrorStream: (error: boolean) => StreamsSetError = (error) => {
+    return {
+        type: SET_ERROR,
+        error,
     };
 };

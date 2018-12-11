@@ -13,7 +13,7 @@ interface Props {
     activeStream?: AudioStreamData;
 }
 
-const AudioPlayerContainer: React.FC<Props> = (props) => (
+const PlayerViewContainer: React.FC<Props> = (props) => (
     <View
         style={{
             flex: 1,
@@ -27,6 +27,7 @@ const AudioPlayerContainer: React.FC<Props> = (props) => (
                 width: 350,
                 height: 300,
             }}
+            defaultSource={require("../../ressources/ebu_logo.png")}
             resizeMode="contain"
             source={{uri: props.activeStream.logoUri}}
         />
@@ -39,8 +40,8 @@ const AudioPlayerContainer: React.FC<Props> = (props) => (
 );
 
 // TODO decorator with the FC maybe?
-export const AudioPlayer = connect(
+export const PlayerView = connect(
     (state: RootReducerState) => ({
         activeStream: state.streams.activeStream,
     }),
-)(AudioPlayerContainer);
+)(PlayerViewContainer);
