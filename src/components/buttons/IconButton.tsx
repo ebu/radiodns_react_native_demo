@@ -12,6 +12,7 @@ interface Props extends TouchableOpacityProps {
 
 export const IconButton: React.FC<Props> = (props) => (
     <TouchableOpacity
+        {...props}
         style={{
             borderWidth: props.withBorder ? 1 : 0,
             borderColor: props.color,
@@ -21,7 +22,6 @@ export const IconButton: React.FC<Props> = (props) => (
             height: props.big ? 80 : 40,
             borderRadius: 100,
         }}
-        {...props}
     >
         <Icon name={props.iconName} size={props.big ? 70 : 30} color={props.color}/>
     </TouchableOpacity>

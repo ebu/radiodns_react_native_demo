@@ -1,2 +1,2 @@
-export const COLOR_PRIMARY = "#141301";
-export const COLOR_SECONDARY = "#FFFFFF";
+export const COLOR_PRIMARY = "#FFFFFF";
+export const COLOR_SECONDARY = "#16337a";

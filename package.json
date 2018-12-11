@@ -1,5 +1,5 @@
 {
-  "name": "radiodns_react_native_techincal_demo",
+  "name": "radiodns_react_native_technical_demo",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -13,20 +13,23 @@
   },
   "dependencies": {
     "buffer": "5.2.1",
-    "react": "16.6.1",
-    "react-native": "0.57.5",
+    "react": "16.6.3",
+    "react-native": "0.57.7",
     "react-native-elements": "0.19.1",
     "react-native-push-notification": "^3.1.2",
     "react-native-vector-icons": "6.1.0",
     "react-native-video": "4.1.0",
+    "react-redux": "^6.0.0",
+    "redux": "^4.0.1",
     "stream": "0.0.2",
     "xml-js": "1.6.8"
   },
   "devDependencies": {
-    "@types/react": "16.7.6",
-    "@types/react-native": "0.57.12",
-    "@types/react-native-push-notification": "^3.0.3",
+    "@types/react": "16.7.13",
+    "@types/react-native": "0.57.18",
+    "@types/react-native-push-notification": "3.0.3",
     "@types/react-native-video": "3.1.0",
+    "@types/react-redux": "^6.0.11",
     "@types/xml-js": "1.0.0",
     "babel-jest": "23.6.0",
     "jest": "23.6.0",
