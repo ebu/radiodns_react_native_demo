@@ -9,6 +9,8 @@ export const ROOT_REDUCER_INITIAL_STATE = {
     streams: STREAMS_REDUCER_DEFAULT_STATE,
 };
 
-export const store = createStore(combineReducers<RootReducerState>({
-    streams: streamReducer,
-}));
+export const store = createStore(
+    combineReducers<RootReducerState>({
+        streams: streamReducer,
+    }),
+);

@@ -1,22 +1,22 @@
 import {DeclarationAttributes} from "xml-js";
 
-type ArrayOrOne<T> = T[] | T;
+export type ArrayOrOne<T> = T[] | T;
 
-interface LinkAttributes {
+export interface LinkAttributes {
     url?: string;
     mimeValue?: string;
     "xml:lang"?: string;
     uri?: string;
 }
 
-interface LocalizedText {
+export interface LocalizedText {
     _text: string;
     _attributes: {
         "xml:lang": string;
     },
 }
 
-interface MediaDescription {
+export interface MediaDescription {
     multimedia: {
         _attributes: {
             height: string;
@@ -27,7 +27,7 @@ interface MediaDescription {
     },
 }
 
-interface ParsedService {
+export interface ParsedService {
     bearer: ArrayOrOne<{
         _attributes: {
             id: string;
@@ -55,7 +55,7 @@ interface ParsedService {
         _text: string;
     },
     shortDescription: LocalizedText,
-    mediaDescription: ArrayOrOne<MediaDescription>,
+    mediaDescription: MediaDescription[],
     radiodns: {
         _attributes: {
             fqdn: string;
@@ -64,7 +64,7 @@ interface ParsedService {
     }
 }
 
-interface ParsedServiceProvider {
+export interface ParsedServiceProvider {
     geolocation: {
         country: {
             _text: string;
@@ -77,11 +77,10 @@ interface ParsedServiceProvider {
     mediumName: LocalizedText,
     longName: LocalizedText,
     shortDescription: LocalizedText,
-    mediaDescription: ArrayOrOne<MediaDescription>,
+    mediaDescription: MediaDescription[],
 }
 
-// @ts-ignore
-interface ParsedSPIFile {
+export interface ParsedSPIFile {
     _declaration: {
         _attributes: DeclarationAttributes,
     },

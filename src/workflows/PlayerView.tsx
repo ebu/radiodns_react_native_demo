@@ -6,15 +6,17 @@ import {connect} from "react-redux";
 import {MediaPlayerErrorBoundary} from "../components/error-boundaries/MediaPlayerErrorBoundary";
 import {MediaControls} from "../components/media/MediaControls";
 import {SoundBar} from "../components/media/SoundBar";
+import {BigText} from "../components/texts/BigText";
 import {RadioStationTitle} from "../components/titles/RadioStationTitle";
 import {BaseView} from "../components/views/BaseView";
-import {AudioStreamData} from "../models/streams-models";
+import {Stream} from "../models/Stream";
 import {RootReducerState} from "../reducers/root-reducer";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
+import {getMedia} from "../utilities";
 
 interface Props extends NavigationScreenProps {
     // injected props
-    activeStream?: AudioStreamData;
+    activeStream?: Stream;
 }
 
 class PlayerViewContainer extends React.Component<Props> {
@@ -28,7 +30,7 @@ class PlayerViewContainer extends React.Component<Props> {
             <>
                 <BaseView backgroundColor={COLOR_PRIMARY}>
                     {!this.props.activeStream &&
-                    <Text style={{fontWeight: "bold", fontSize: 20}}>No stations to listen to!</Text>}
+                        <BigText>No stations to listen to!</BigText>}
                     {this.props.activeStream && <MediaPlayerErrorBoundary>
                         <Image
                             style={{
@@ -37,10 +39,10 @@ class PlayerViewContainer extends React.Component<Props> {
                             }}
                             defaultSource={require("../../ressources/ebu_logo.png")}
                             resizeMode="contain"
-                            source={{uri: this.props.activeStream.logoUri}}
+                            source={{uri: getMedia(this.props.activeStream.mediaDescription)}}
                         />
                         <View style={{flex: 0.2}}/>
-                        <Text h4 style={{color: COLOR_SECONDARY}}>{this.props.activeStream.stationName}</Text>
+                        <Text h4 style={{color: COLOR_SECONDARY}}>{this.props.activeStream.longName._text}</Text>
                         <View style={{flex: 0.4}}/>
                         <SoundBar/>
                         <MediaControls/>

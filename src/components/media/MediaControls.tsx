@@ -1,8 +1,7 @@
 import * as React from "react"
 import {ActivityIndicator, View} from "react-native";
 import {connect} from "react-redux";
-import {Dispatch} from "redux";
-import {AudioStreamData} from "../../models/streams-models";
+import {Stream} from "../../models/Stream";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setStreamPausedState} from "../../reducers/streams";
 import {cancelAudioPlayerNotifControl, displayAudioPlayerNotifControl} from "../../services/LNP";
@@ -13,7 +12,7 @@ import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
 
 interface Props {
     // injected props
-    currentSteam?: AudioStreamData;
+    currentSteam?: Stream;
     paused?: boolean;
     loading?: boolean;
     setStreamPausedState?: (paused: boolean) => void;
@@ -60,8 +59,8 @@ class MediaControlsContainer extends React.Component<Props> {
     };
 
     private updateControlNotif = () => {
-        const {stationName}: AudioStreamData = this.props.currentSteam;
-        displayAudioPlayerNotifControl(stationName);
+        const {longName}: Stream = this.props.currentSteam;
+        displayAudioPlayerNotifControl(longName._text);
     };
 }
 
@@ -71,7 +70,7 @@ export const MediaControls = connect(
         paused: state.streams.paused,
         loading: state.streams.loading,
     }),
-    ((dispatch: Dispatch) => ({
+    ((dispatch) => ({
         setStreamPausedState: (paused: boolean) => dispatch(setStreamPausedState(paused)),
     })),
 )(MediaControlsContainer);

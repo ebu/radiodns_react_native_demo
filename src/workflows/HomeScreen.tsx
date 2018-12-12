@@ -1,10 +1,22 @@
 import * as React from "react";
-import {Button, Text} from "react-native";
+import {ActivityIndicator, FlatList, ListRenderItemInfo} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
+import {connect} from "react-redux";
+import {StreamItemRenderer} from "../components/lists-item-renderers/StreamItemRenderer";
+import {BigText} from "../components/texts/BigText";
 import {BaseView} from "../components/views/BaseView";
-import {COLOR_PRIMARY} from "../styles";
+import {Stream} from "../models/Stream";
+import {RootReducerState} from "../reducers/root-reducer";
+import {setActiveStream} from "../reducers/streams";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 
-export class HomeScreen extends React.Component<NavigationScreenProps> {
+interface Props extends NavigationScreenProps {
+    loadingStreamsState?: "LOADING" | "ERROR" | "SUCCESS";
+    streams?: Stream[];
+    setActiveStream?: (stream: Stream) => void;
+}
+
+export class HomeScreenContainer extends React.Component<Props> {
     public static navigationOptions = {
         title: "Home",
     };
@@ -12,14 +24,42 @@ export class HomeScreen extends React.Component<NavigationScreenProps> {
     public render() {
         return (
             <BaseView backgroundColor={COLOR_PRIMARY}>
-                <Text> Main Screen </Text>
-                <Button
-                    title="Go to player"
-                    onPress={this.handleClick}
-                />
+                {this.props.loadingStreamsState === "LOADING" &&
+                <>
+                    <ActivityIndicator size="large" style={{width: 80, height: 80}} color={COLOR_SECONDARY}/>
+                    <BigText>Loading metadata...</BigText>
+                </>}
+                {this.props.loadingStreamsState === "SUCCESS" &&
+                <FlatList
+                    style={{width: "100%"}}
+                    data={this.props.streams}
+                    renderItem={this.renderStream}
+                />}
+                {this.props.loadingStreamsState === "ERROR" &&
+                <BigText>Failed to load the metadata.</BigText>}
             </BaseView>
         );
     }
 
-    private handleClick = () => this.props.navigation.navigate("PlayerView");
+    private renderStream = ({item, index}: ListRenderItemInfo<Stream>) => (
+        <StreamItemRenderer
+            key={index}
+            stream={item}
+            onPress={this.activateAndNavigateToStream(item)}
+        />);
+
+    private activateAndNavigateToStream = (stream: Stream) => () => {
+        this.props.setActiveStream(stream);
+        this.props.navigation.navigate("PlayerView")
+    }
 }
+
+export const HomeScreen = connect(
+    (state: RootReducerState) => ({
+        loadingStreamsState: state.streams.loadingStreamsState,
+        streams: state.streams.streams,
+    }),
+    ((dispatch) => ({
+        setActiveStream: (stream: Stream) => dispatch(setActiveStream(stream)),
+    })),
+)(HomeScreenContainer);

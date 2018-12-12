@@ -4,15 +4,17 @@
  * (https://github.com/erikras/ducks-modular-redux).
  */
 import {Action} from "redux";
-import {AudioStreamData} from "../models/streams-models";
+import {ParsedSPIFile} from "../models/SPIModel";
+import {Stream} from "../models/Stream";
+import {isWebScheme} from "../utilities";
 
 // Types
-interface StreamsLoadAction extends Action<typeof LOAD> {
-    streams: AudioStreamData[];
+interface StreamsLoadAction extends Action<typeof FETCH_SERVICES_SUCCESS> {
+    spiFile: ParsedSPIFile;
 }
 
 interface StreamsSetActiveAction extends Action<typeof SET_ACTIVE> {
-    activeStream: AudioStreamData;
+    activeStream: Stream;
 }
 
 interface StreamsSetLoading extends Action<typeof SET_LOADING> {
@@ -31,7 +33,9 @@ interface StreamsSetVolume extends Action<typeof SET_VOLUME> {
     volume: number;
 }
 
-type StreamsActions = StreamsLoadAction
+type StreamsActions = Action<typeof GET_SERVICES>
+    | StreamsLoadAction
+    | Action<typeof FETCH_SERVICES_FAILURE>
     | StreamsSetActiveAction
     | StreamsSetLoading
     | StreamsSetPaused
@@ -41,8 +45,9 @@ type StreamsActions = StreamsLoadAction
     | StreamsSetError;
 
 export interface StreamsReducerState {
-    streams: AudioStreamData[];
-    activeStream: AudioStreamData;
+    streams: Stream[];
+    loadingStreamsState: "LOADING" | "ERROR" | "SUCCESS";
+    activeStream: Stream;
     loading: boolean;
     paused: boolean;
     index: number;
@@ -50,18 +55,10 @@ export interface StreamsReducerState {
     error: boolean;
 }
 
-export const STREAMS_REDUCER_DEFAULT_STATE: StreamsReducerState = {
-    streams: [],
-    activeStream: null,
-    loading: true,
-    paused: false,
-    index: 0,
-    volume: 1,
-    error: false,
-};
-
 // Actions
-const LOAD = "radiodns_react_native_technical_demo/streams/LOAD";
+const GET_SERVICES = "radiodns_react_native_technical_demo/streams/GET_SERVICES";
+const FETCH_SERVICES_SUCCESS = "radiodns_react_native_technical_demo/streams/FETCH_SERVICES_SUCCESS";
+const FETCH_SERVICES_FAILURE = "radiodns_react_native_technical_demo/streams/FETCH_SERVICES_FAILURE";
 const SET_ACTIVE = "radiodns_react_native_technical_demo/streams/SET_ACTIVE";
 const SET_LOADING = "radiodns_react_native_technical_demo/streams/SET_LOADING";
 const SET_PAUSED = "radiodns_react_native_technical_demo/streams/SET_PAUSED";
@@ -71,6 +68,65 @@ const SET_VOLUME = "radiodns_react_native_technical_demo/streams/SET_VOLUME";
 const SET_ERROR = "radiodns_react_native_technical_demo/streams/SET_ERROR";
 
 // Reducer
+
+export const STREAMS_REDUCER_DEFAULT_STATE: StreamsReducerState = {
+    streams: [],
+    loadingStreamsState: "LOADING",
+    activeStream: null,
+    loading: true,
+    paused: false,
+    index: 0,
+    volume: 1,
+    error: false,
+};
+
+// TODO add catch to prevent parsing errors form crashing the app.
+export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STATE, action: StreamsActions): StreamsReducerState {
+    switch (action.type) {
+        case GET_SERVICES:
+            return {...state, loadingStreamsState: "LOADING"};
+        case FETCH_SERVICES_SUCCESS:
+            console.log("ACTION", action);
+            const streams: Stream[] = action.spiFile.serviceInformation.services.service
+                .filter((service) =>
+                    Array.isArray(service.bearer)
+                        ? service.bearer
+                            .some((bearer) => isWebScheme(bearer._attributes.id))
+                        : isWebScheme(service.bearer._attributes.id))
+                .map((service) => ({
+                    ...service,
+                    bearer: Array.isArray(service.bearer)
+                        ? service.bearer
+                            .filter((bearer) => isWebScheme(bearer._attributes.id))
+                            .reduce((best, current) =>
+                            parseInt(current._attributes.cost, 10) > parseInt(best._attributes.cost, 10) ? current : best)
+                        : service.bearer,
+                }));
+            return {...state, loadingStreamsState: "SUCCESS", streams};
+        case FETCH_SERVICES_FAILURE:
+            return {...state, loadingStreamsState: "ERROR"};
+        case SET_ACTIVE:
+            return setNewIndexHelper({...state, activeStream: action.activeStream, error: false}, getIndexFromActive);
+        case SET_LOADING:
+            return {...state, loading: action.loading, error: false};
+        case SET_PAUSED:
+            return {...state, paused: action.paused};
+        case SET_ACTIVE_NEXT:
+            return setNewIndexHelper({
+                ...state,
+                error: false,
+            }, (s) => s.index - 1 >= 0 ? s.index - 1 : s.streams.length - 1);
+        case SET_ACTIVE_PREVIOUS:
+            return setNewIndexHelper({...state, error: false}, (s) => s.index + 1 < s.streams.length ? s.index + 1 : 0);
+        case SET_VOLUME:
+            return {...state, volume: action.volume};
+        case SET_ERROR:
+            return {...state, error: action.error};
+        default:
+            return state;
+    }
+}
+
 const setNewIndexHelper = (state: StreamsReducerState, updateFn: (state: StreamsReducerState) => number) => {
     if (state.streams.length === 0) {
         return state;
@@ -88,84 +144,53 @@ const getIndexFromActive = (state: StreamsReducerState) => {
     if (state.activeStream === null) {
         return state.index;
     }
-    const currentIndex = state.streams.map((stream) => stream.uri).indexOf(state.activeStream.uri);
+    const currentIndex = state.streams.map((stream) => stream.bearer._attributes.id).indexOf(state.activeStream.bearer._attributes.id);
     return currentIndex === -1 ? 0 : currentIndex;
 };
 
-export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STATE, action: StreamsActions): StreamsReducerState {
-    switch (action.type) {
-        case LOAD:
-            return {...state, streams: Array.from(action.streams)};
-        case SET_ACTIVE:
-            return setNewIndexHelper({...state, activeStream: action.activeStream, error: false}, getIndexFromActive);
-        case SET_LOADING:
-            return {...state, loading: action.loading, error: false};
-        case SET_PAUSED:
-            return {...state, paused: action.paused};
-        case SET_ACTIVE_NEXT:
-            return setNewIndexHelper({...state, error: false}, (s) => s.index + 1 < s.streams.length ? s.index + 1 : 0);
-        case SET_ACTIVE_PREVIOUS:
-            return setNewIndexHelper({...state, error: false}, (s) => s.index - 1 >= 0 ? s.index - 1 : s.streams.length - 1);
-        case SET_VOLUME:
-            return {...state, volume: action.volume};
-        case SET_ERROR:
-            return {...state, error: action.error};
-        default:
-            return state;
-    }
-}
-
 // Action creators
-export const loadStreams: (streams: AudioStreamData[]) => StreamsLoadAction = (streams) => {
-    return {
-        type: LOAD,
-        streams,
-    };
-};
+export const streamsLoading: () => Action<typeof GET_SERVICES> = () => ({
+    type: GET_SERVICES,
+});
 
-export const setActiveStream: (activeStream: AudioStreamData) => StreamsSetActiveAction = (activeStream) => {
-    return {
-        type: SET_ACTIVE,
-        activeStream,
-    };
-};
+export const loadStreams: (spiFile: ParsedSPIFile) => StreamsLoadAction = (spiFile) => ({
+    type: FETCH_SERVICES_SUCCESS,
+    spiFile,
+});
 
-export const setStreamLoadingState: (loading: boolean) => StreamsSetLoading = (loading) => {
-    return {
-        type: SET_LOADING,
-        loading,
-    };
-};
+export const loadStreamsFailed: () => Action<typeof FETCH_SERVICES_FAILURE> = () => ({
+    type: FETCH_SERVICES_FAILURE,
+});
 
-export const setStreamPausedState: (paused: boolean) => StreamsSetPaused = (paused) => {
-    return {
-        type: SET_PAUSED,
-        paused,
-    };
-};
+export const setActiveStream: (activeStream: Stream) => StreamsSetActiveAction = (activeStream) => ({
+    type: SET_ACTIVE,
+    activeStream,
+});
 
-export const setNextStream: () => Action<typeof SET_ACTIVE_NEXT> = () => {
-    return {
-        type: SET_ACTIVE_NEXT,
-    };
-};
+export const setStreamLoadingState: (loading: boolean) => StreamsSetLoading = (loading) => ({
+    type: SET_LOADING,
+    loading,
+});
 
-export const setPreviousStream: () => Action<typeof SET_ACTIVE_PREVIOUS> = () => {
-    return {
-        type: SET_ACTIVE_PREVIOUS,
-    };
-};
+export const setStreamPausedState: (paused: boolean) => StreamsSetPaused = (paused) => ({
+    type: SET_PAUSED,
+    paused,
+});
 
-export const setVolumeStream: (volume: number) => StreamsSetVolume = (volume) => {
-    return {
-        type: SET_VOLUME,
-        volume,
-    };
-};
+export const setNextStream: () => Action<typeof SET_ACTIVE_NEXT> = () => ({
+    type: SET_ACTIVE_NEXT,
+});
 
-export const setErrorStream: (error: boolean) => StreamsSetError = (error) => {
-    return {
-        type: SET_ERROR,
-        error,
-    };
-};
+export const setPreviousStream: () => Action<typeof SET_ACTIVE_PREVIOUS> = () => ({
+    type: SET_ACTIVE_PREVIOUS,
+});
+
+export const setVolumeStream: (volume: number) => StreamsSetVolume = (volume) => ({
+    type: SET_VOLUME,
+    volume,
+});
+
+export const setErrorStream: (error: boolean) => StreamsSetError = (error) => ({
+    type: SET_ERROR,
+    error,
+});

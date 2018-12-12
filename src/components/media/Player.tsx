@@ -2,14 +2,14 @@ import * as React from "react"
 import Video, {LoadError} from "react-native-video";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {AudioStreamData} from "../../models/streams-models";
+import {Stream} from "../../models/Stream";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setErrorStream, setStreamLoadingState} from "../../reducers/streams";
 import {displayAudioPlayerNotifControl} from "../../services/LNP";
 
 interface Props {
     // injected props
-    currentSteam?: AudioStreamData;
+    currentSteam?: Stream;
     paused?: boolean;
     loading?: boolean;
     volume?: number;
@@ -27,7 +27,8 @@ class PlayerContainer extends React.Component<Props> {
         if (!this.props.currentSteam) {
             return null;
         }
-        const {uri} = this.props.currentSteam;
+        const uri = this.props.currentSteam.bearer._attributes.id;
+        console.log("URI", uri);
         return (
             <Video
                 ref={this.onRef}
@@ -75,8 +76,8 @@ class PlayerContainer extends React.Component<Props> {
     };
 
     private updateControlNotif = () => {
-        const {stationName}: AudioStreamData = this.props.currentSteam;
-        displayAudioPlayerNotifControl(stationName);
+        const {longName}: Stream = this.props.currentSteam;
+        displayAudioPlayerNotifControl(longName._text);
     };
 }
 
