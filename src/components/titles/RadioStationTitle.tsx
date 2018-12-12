@@ -1,12 +1,13 @@
 import * as React from "react";
 import {Text} from "react-native-elements";
 import {connect} from "react-redux";
+import {AudioStreamData} from "../../models/streams-models";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {COLOR_PRIMARY} from "../../styles";
 
 interface Props {
     // injected props
-    stationName?: string;
+    activeStream?: AudioStreamData;
 }
 
 const RadioStationTitleContainer: React.FC<Props> = (props) => (
@@ -17,12 +18,12 @@ const RadioStationTitleContainer: React.FC<Props> = (props) => (
             fontSize: 20,
         }}
     >
-        {props.stationName}
+        {props.activeStream ? props.activeStream.stationName : ""}
     </Text>
 );
 
 export const RadioStationTitle = connect(
     (state: RootReducerState) => ({
-        stationName: state.streams.activeStream.stationName,
+        activeStream: state.streams.activeStream,
     }),
 )(RadioStationTitleContainer);

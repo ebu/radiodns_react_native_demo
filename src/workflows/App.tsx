@@ -6,37 +6,11 @@ import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
 import {Player} from "../components/media/Player";
 import {store} from "../reducers/root-reducer";
-import {loadStreams, setActiveStream} from "../reducers/streams";
+import {getSpi} from "../services/http";
 import {cancelAudioPlayerNotifControl} from "../services/LNP";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
-
-store.dispatch(loadStreams([
-    {
-        stationName: "Rouge fm",
-        uri: "http://rougefm.ice.infomaniak.ch/rougefm-high.mp3",
-        logoUri: "https://upload.wikimedia.org/wikipedia/fr/9/92/Rouge_FM_2011_logo.png",
-    },
-    {
-        stationName: "7radio",
-        uri: "http://178.32.107.33/7radio-192k.mp3",
-        logoUri: "https://www.7radio.ch/7radio/wp-content/uploads/2014/08/7radio-logo-bleu-sans-texte-1024x905.png",
-    },
-    {
-        stationName: "Unknown radio",
-        uri: "http://178.32.107.33/7rasfgsdgsdfhghdio-192k.mp3",
-        logoUri: "https://www.7radio.ch/7radio/wp-content/-sans-texte-1024x905.png",
-    },
-]));
-
-store.dispatch(setActiveStream(
-    {
-        stationName: "Unknown radio",
-        uri: "http://178.32.107.33/7rasfgsdgsdfhghdio-192k.mp3",
-        logoUri: "https://www.7radio.ch/7radio/wp-content/-sans-texte-1024x905.png",
-    },
-));
 
 export default class App extends React.Component {
 
@@ -65,6 +39,7 @@ export default class App extends React.Component {
     ));
 
     public componentWillMount() {
+        getSpi();
         PushNotification.configure({
             permissions: {
                 alert: true,

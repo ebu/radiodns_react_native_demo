@@ -24,6 +24,9 @@ class PlayerContainer extends React.Component<Props> {
     private playerRef: Video;
 
     public render() {
+        if (!this.props.currentSteam) {
+            return null;
+        }
         const {uri} = this.props.currentSteam;
         return (
             <Video
