@@ -9,6 +9,7 @@ import {setNextStream, setPreviousStream} from "../../reducers/streams";
 import {COLOR_DANGER, COLOR_PRIMARY} from "../../styles";
 import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
 import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
+import {BaseView} from "../views/BaseView";
 
 interface Props {
     // injected
@@ -39,7 +40,7 @@ class MediaPlayerErrorContainer extends React.Component<Props, State> {
     public render() {
         if (this.state.hasError || this.props.error) {
             return (
-                <View style={styles.dangerView}>
+                <BaseView backgroundColor={COLOR_DANGER}>
                     <Icon name="error-outline" color={COLOR_PRIMARY} size={200}/>
                     <View style={{flex: 0.3}}/>
                     <Text style={styles.textDanger}>
@@ -55,7 +56,7 @@ class MediaPlayerErrorContainer extends React.Component<Props, State> {
                         <View style={{flex: 0.2}}/>
                         <MediaPlayPreviousButton color={COLOR_PRIMARY} backgroundColor={COLOR_DANGER}/>
                     </View>
-                </View>
+                </BaseView>
             );
         }
         return this.props.children;
@@ -75,12 +76,5 @@ const styles = StyleSheet.create({
         textAlign: "center",
         color: COLOR_PRIMARY,
         fontSize: 20,
-    },
-    dangerView: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: COLOR_DANGER,
-        padding: 30,
     },
 });

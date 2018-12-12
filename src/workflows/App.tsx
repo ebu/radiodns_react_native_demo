@@ -1,16 +1,16 @@
 import * as React from "react";
-import {AppState, AppStateStatus, View} from "react-native";
+import {AppState, AppStateStatus} from "react-native";
 import PushNotification from "react-native-push-notification";
+// @ts-ignore
+import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
-import {createStore} from "redux";
-import {MediaPlayerErrorBoundary} from "../components/error-boundaries/MediaPlayerErrorBoundary";
-import {rootReducer} from "../reducers/root-reducer";
+import {Player} from "../components/media/Player";
+import {store} from "../reducers/root-reducer";
 import {loadStreams, setActiveStream} from "../reducers/streams";
 import {cancelAudioPlayerNotifControl} from "../services/LNP";
-import {COLOR_PRIMARY} from "../styles";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
+import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
-
-const store = createStore(rootReducer);
 
 store.dispatch(loadStreams([
     {
@@ -40,6 +40,30 @@ store.dispatch(setActiveStream(
 
 export default class App extends React.Component {
 
+    private AppNavigator = createAppContainer(createStackNavigator(
+        {
+            Home: {
+                screen: HomeScreen,
+            },
+            PlayerView: {
+                screen: PlayerView,
+            },
+        },
+        {
+            initialRouteName: "Home",
+            // @ts-ignore
+            defaultNavigationOptions: {
+                headerStyle: {
+                    backgroundColor: COLOR_SECONDARY,
+                },
+                headerTintColor: COLOR_PRIMARY,
+                headerTitleStyle: {
+                    fontWeight: "bold",
+                },
+            },
+        },
+    ));
+
     public componentWillMount() {
         PushNotification.configure({
             permissions: {
@@ -59,16 +83,8 @@ export default class App extends React.Component {
     public render() {
         return (
             <Provider store={store}>
-                <View
-                    style={{
-                        flex: 1,
-                        backgroundColor: COLOR_PRIMARY,
-                    }}
-                >
-                    <MediaPlayerErrorBoundary>
-                        <PlayerView/>
-                    </MediaPlayerErrorBoundary>
-                </View>
+                <Player/>
+                <this.AppNavigator/>
             </Provider>
         );
     }

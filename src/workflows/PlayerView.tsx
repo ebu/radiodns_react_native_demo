@@ -1,45 +1,54 @@
 import * as React from "react";
 import {Image, View} from "react-native";
 import {Text} from "react-native-elements";
-import {connect} from "react-redux";
-import {MediaPlayer} from "../components/media/MediaPlayer";
+import {NavigationScreenConfig, NavigationScreenOptions, NavigationScreenProps} from "react-navigation";
+import {connect, Provider} from "react-redux";
+import {MediaPlayerErrorBoundary} from "../components/error-boundaries/MediaPlayerErrorBoundary";
+import {MediaControls} from "../components/media/MediaControls";
 import {SoundBar} from "../components/media/SoundBar";
+import {RadioStationTitle} from "../components/titles/RadioStationTitle";
+import {BaseView} from "../components/views/BaseView";
 import {AudioStreamData} from "../models/streams-models";
-import {RootReducerState} from "../reducers/root-reducer";
-import {COLOR_SECONDARY} from "../styles";
+import {RootReducerState, store} from "../reducers/root-reducer";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 
-interface Props {
+interface Props extends NavigationScreenProps {
     // injected props
     activeStream?: AudioStreamData;
 }
 
-const PlayerViewContainer: React.FC<Props> = (props) => (
-    <View
-        style={{
-            flex: 1,
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-        }}
-    >
-        <Image
-            style={{
-                width: 350,
-                height: 300,
-            }}
-            defaultSource={require("../../ressources/ebu_logo.png")}
-            resizeMode="contain"
-            source={{uri: props.activeStream.logoUri}}
-        />
-        <View style={{flex: 0.2}}/>
-        <Text h4 style={{color: COLOR_SECONDARY}}>{props.activeStream.stationName}</Text>
-        <View style={{flex: 0.4}}/>
-        <SoundBar/>
-        <MediaPlayer/>
-    </View>
-);
+class PlayerViewContainer extends React.Component<Props> {
 
-// TODO decorator with the FC maybe?
+    public static navigationOptions: NavigationScreenConfig<NavigationScreenOptions> = {
+        headerTitle: <RadioStationTitle/>,
+    };
+
+    public render() {
+        return (
+            <Provider store={store}>
+                <MediaPlayerErrorBoundary>
+                        <BaseView backgroundColor={COLOR_PRIMARY}>
+                            <Image
+                                style={{
+                                    width: 350,
+                                    height: 300,
+                                }}
+                                defaultSource={require("../../ressources/ebu_logo.png")}
+                                resizeMode="contain"
+                                source={{uri: this.props.activeStream.logoUri}}
+                            />
+                            <View style={{flex: 0.2}}/>
+                            <Text h4 style={{color: COLOR_SECONDARY}}>{this.props.activeStream.stationName}</Text>
+                            <View style={{flex: 0.4}}/>
+                            <SoundBar/>
+                            <MediaControls/>
+                        </BaseView>
+                </MediaPlayerErrorBoundary>
+            </Provider>
+        );
+    }
+}
+
 export const PlayerView = connect(
     (state: RootReducerState) => ({
         activeStream: state.streams.activeStream,
