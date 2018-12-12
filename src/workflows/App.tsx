@@ -1,12 +1,12 @@
 import * as React from "react";
-import {View} from "react-native";
+import {AppState, AppStateStatus, View} from "react-native";
 import PushNotification from "react-native-push-notification";
 import {Provider} from "react-redux";
 import {createStore} from "redux";
 import {MediaPlayerErrorBoundary} from "../components/error-boundaries/MediaPlayerErrorBoundary";
-import {PUSH_NOTIFICATION_ID} from "../constants";
 import {rootReducer} from "../reducers/root-reducer";
 import {loadStreams, setActiveStream} from "../reducers/streams";
+import {cancelAudioPlayerNotifControl} from "../services/LNP";
 import {COLOR_PRIMARY} from "../styles";
 import {PlayerView} from "./PlayerView";
 
@@ -49,6 +49,11 @@ export default class App extends React.Component {
             },
             requestPermissions: true,
         });
+        AppState.addEventListener("change", this.handleAppStateChange);
+    }
+
+    public componentWillUnmount() {
+        AppState.removeEventListener("change", this.handleAppStateChange);
     }
 
     public render() {
@@ -68,7 +73,9 @@ export default class App extends React.Component {
         );
     }
 
-    public componentWillUnmount() {
-        PushNotification.cancelLocalNotifications({id: PUSH_NOTIFICATION_ID});
+    private handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState === "inactive") {
+            cancelAudioPlayerNotifControl();
+        }
     }
 }

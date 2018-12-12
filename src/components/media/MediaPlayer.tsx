@@ -12,7 +12,7 @@ import {
     setStreamLoadingState,
     setStreamPausedState,
 } from "../../reducers/streams";
-import {displayAudioPlayerNotifControl} from "../../services/LNP";
+import {cancelAudioPlayerNotifControl, displayAudioPlayerNotifControl} from "../../services/LNP";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../styles";
 import {IconButton} from "../buttons/IconButton";
 import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
@@ -86,7 +86,7 @@ class MediaPlayerContainer extends React.Component<Props> {
     // MEDIA HANDLING
     private onMediaReady = () => {
         this.props.setStreamLoadingState(false);
-        this.updateControlNotif(true);
+        this.updateControlNotif();
     };
 
     private onProgress = () => {
@@ -102,20 +102,22 @@ class MediaPlayerContainer extends React.Component<Props> {
     // PLAYER IMPLEMENTATION METHODS
     private onPausePlayButtonPress = () => {
         const paused = !this.props.paused;
-        this.updateControlNotif(paused);
+        paused
+            ? cancelAudioPlayerNotifControl()
+            : this.updateControlNotif();
         this.props.setStreamPausedState(paused);
     };
 
     private onError = (e: LoadError) => {
         // TODO display error on both notif and screen.
         this.props.setErrorStream(true);
-        this.updateControlNotif(false);
+        this.updateControlNotif();
         console.error(e.error)
     };
 
-    private updateControlNotif = (playing: boolean) => {
+    private updateControlNotif = () => {
         const {stationName}: AudioStreamData = this.props.currentSteam;
-        displayAudioPlayerNotifControl(stationName, `["${playing ? "pause" : "play"}"]`);
+        displayAudioPlayerNotifControl(stationName);
     };
 }
 

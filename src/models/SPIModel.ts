@@ -14,6 +14,14 @@ interface Service {
     bearer: BearerAttributes | BearerAttributes[];
 }
 
+interface ServiceProvider {
+    shortName: string;
+    mediumName: string;
+    longName: string;
+    shortDescription: string;
+    link: string[];
+}
+
 interface ServiceInformation {
     services: {
         service: Service[],
