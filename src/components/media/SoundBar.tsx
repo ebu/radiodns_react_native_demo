@@ -13,6 +13,11 @@ interface Props {
     setVolume?: (volume: number) => void;
 }
 
+/**
+ * Sounds control for the player. Read to use as it is.
+ * @param props: The component props.
+ * @constructor
+ */
 const SoundBarContainer: React.FC<Props> = (props) => (
     <View
         style={{

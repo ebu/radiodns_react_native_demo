@@ -4,9 +4,9 @@
  * (https://github.com/erikras/ducks-modular-redux).
  */
 import {Action} from "redux";
-import {ParsedSPIFile} from "../models/SPIModel";
+import {ParsedServiceWithBearer, ParsedSPIFile} from "../models/SPIModel";
 import {Stream} from "../models/Stream";
-import {isWebScheme} from "../utilities";
+import {isWebScheme, parsedServiceToStream} from "../utilities";
 
 // Types
 interface StreamsLoadAction extends Action<typeof FETCH_SERVICES_SUCCESS> {
@@ -47,7 +47,7 @@ type StreamsActions = Action<typeof GET_SERVICES>
 export interface StreamsReducerState {
     streams: Stream[];
     loadingStreamsState: "LOADING" | "ERROR" | "SUCCESS";
-    activeStream: Stream;
+    activeStream: Stream | null;
     loading: boolean;
     paused: boolean;
     index: number;
@@ -86,22 +86,21 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
         case GET_SERVICES:
             return {...state, loadingStreamsState: "LOADING"};
         case FETCH_SERVICES_SUCCESS:
-            console.log("ACTION", action);
+            if (!action.spiFile.serviceInformation.services.service) {
+                return {...state, loadingStreamsState: "ERROR"};
+            }
             const streams: Stream[] = action.spiFile.serviceInformation.services.service
-                .filter((service) =>
-                    Array.isArray(service.bearer)
-                        ? service.bearer
-                            .some((bearer) => isWebScheme(bearer._attributes.id))
-                        : isWebScheme(service.bearer._attributes.id))
-                .map((service) => ({
-                    ...service,
-                    bearer: Array.isArray(service.bearer)
-                        ? service.bearer
-                            .filter((bearer) => isWebScheme(bearer._attributes.id))
-                            .reduce((best, current) =>
-                            parseInt(current._attributes.cost, 10) > parseInt(best._attributes.cost, 10) ? current : best)
-                        : service.bearer,
-                }));
+                .filter((service) => {
+                    if (service.bearer) {
+                        return Array.isArray(service.bearer)
+                            ? service.bearer
+                                .some((bearer) => isWebScheme(bearer._attributes.id ? bearer._attributes.id : ""))
+                            : isWebScheme(service.bearer._attributes.id ? service.bearer._attributes.id : "")
+                    }
+                    return false;
+                })
+                // Typescript doesn't know but here by filtering bearers we ensured that we have one.
+                .map((stream) => parsedServiceToStream(stream as ParsedServiceWithBearer));
             return {...state, loadingStreamsState: "SUCCESS", streams};
         case FETCH_SERVICES_FAILURE:
             return {...state, loadingStreamsState: "ERROR"};
@@ -144,7 +143,9 @@ const getIndexFromActive = (state: StreamsReducerState) => {
     if (state.activeStream === null) {
         return state.index;
     }
-    const currentIndex = state.streams.map((stream) => stream.bearer._attributes.id).indexOf(state.activeStream.bearer._attributes.id);
+    const currentIndex = state.streams
+        .filter((stream) => stream.bearer !== undefined)
+        .map((stream) => stream.bearer.id).indexOf(state.activeStream.bearer.id);
     return currentIndex === -1 ? 0 : currentIndex;
 };
 

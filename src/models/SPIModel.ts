@@ -27,7 +27,7 @@ export interface MediaDescription {
     },
 }
 
-export interface ParsedService {
+export interface ParsedServiceWithBearer extends ParsedService {
     bearer: ArrayOrOne<{
         _attributes: {
             id: string;
@@ -36,26 +36,37 @@ export interface ParsedService {
             mimeValue: "audio/aacp" | "audio/mpeg";
         },
     }>,
-    genre: ArrayOrOne<{
+}
+
+export interface ParsedService {
+    bearer?: ArrayOrOne<{
+        _attributes: {
+            id?: string;
+            cost?: string;
+            offset?: string;
+            mimeValue?: "audio/aacp" | "audio/mpeg";
+        },
+    }>,
+    genre?: ArrayOrOne<{
         _attributes: {
             href: string;
         },
         _text: string;
     }>,
-    link: ArrayOrOne<{
+    link?: ArrayOrOne<{
         _attributes: LinkAttributes,
     }>,
-    shortName: {
+    shortName?: {
         _text: string;
     },
-    mediumName: {
+    mediumName?: {
         _text: string;
     },
-    longName: {
+    longName?: {
         _text: string;
     },
-    shortDescription: LocalizedText,
-    mediaDescription: MediaDescription[],
+    shortDescription?: LocalizedText,
+    mediaDescription?: MediaDescription[],
     radiodns: {
         _attributes: {
             fqdn: string;
@@ -65,19 +76,19 @@ export interface ParsedService {
 }
 
 export interface ParsedServiceProvider {
-    geolocation: {
+    geolocation?: {
         country: {
             _text: string;
         },
     },
-    link: ArrayOrOne<{
+    link?: ArrayOrOne<{
         _attributes: LinkAttributes,
     }>,
-    shortName: LocalizedText,
-    mediumName: LocalizedText,
-    longName: LocalizedText,
-    shortDescription: LocalizedText,
-    mediaDescription: MediaDescription[],
+    shortName?: LocalizedText,
+    mediumName?: LocalizedText,
+    longName?: LocalizedText,
+    shortDescription?: LocalizedText,
+    mediaDescription?: MediaDescription[],
 }
 
 export interface ParsedSPIFile {
@@ -86,8 +97,8 @@ export interface ParsedSPIFile {
     },
     serviceInformation: {
         services: {
-            service: ParsedService[],
-            serviceProvider: ParsedServiceProvider,
+            service?: ParsedService[],
+            serviceProvider?: ParsedServiceProvider,
         },
     },
 }

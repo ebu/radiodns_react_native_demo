@@ -7,7 +7,7 @@ import {COLOR_PRIMARY} from "../../styles";
 
 interface Props {
     // injected props
-    activeStream?: Stream;
+    activeStream?: Stream | null;
 }
 
 const RadioStationTitleContainer: React.FC<Props> = (props) => (
@@ -18,7 +18,7 @@ const RadioStationTitleContainer: React.FC<Props> = (props) => (
             fontSize: 20,
         }}
     >
-        {props.activeStream ? props.activeStream.longName._text : ""}
+        {props.activeStream ? props.activeStream.mediumName : ""}
     </Text>
 );
 

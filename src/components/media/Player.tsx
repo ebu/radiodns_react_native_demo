@@ -5,11 +5,11 @@ import {Dispatch} from "redux";
 import {Stream} from "../../models/Stream";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setErrorStream, setStreamLoadingState} from "../../reducers/streams";
-import {displayAudioPlayerNotifControl} from "../../services/LNP";
+import {displayAudioPlayerNotifControl, injectedFunctionInvoker, injectedPropReader} from "../../utilities";
 
 interface Props {
     // injected props
-    currentSteam?: Stream;
+    currentSteam?: Stream | null;
     paused?: boolean;
     loading?: boolean;
     volume?: number;
@@ -27,8 +27,7 @@ class PlayerContainer extends React.Component<Props> {
         if (!this.props.currentSteam) {
             return null;
         }
-        const uri = this.props.currentSteam.bearer._attributes.id;
-        console.log("URI", uri);
+        const uri = this.props.currentSteam.bearer.id;
         return (
             <Video
                 ref={this.onRef}
@@ -52,7 +51,7 @@ class PlayerContainer extends React.Component<Props> {
 
     // MEDIA HANDLING
     private onMediaReady = () => {
-        this.props.setStreamLoadingState(false);
+        injectedFunctionInvoker(this.props.setStreamLoadingState, false);
         this.updateControlNotif();
     };
 
@@ -62,23 +61,20 @@ class PlayerContainer extends React.Component<Props> {
         }
     };
 
-    private onLoadStart = () => this.props.setStreamLoadingState(true);
+    private onLoadStart = () => injectedFunctionInvoker(this.props.setStreamLoadingState, true);
 
-    private onBuffering = () => this.props.setStreamLoadingState(true);
+    private onBuffering = () => injectedFunctionInvoker(this.props.setStreamLoadingState, true);
 
     // PLAYER IMPLEMENTATION METHODS
 
     private onError = (e: LoadError) => {
         // TODO display error on both notif and screen.
-        this.props.setErrorStream(true);
+        injectedFunctionInvoker(this.props.setErrorStream, true);
         this.updateControlNotif();
         console.error(e.error)
     };
 
-    private updateControlNotif = () => {
-        const {longName}: Stream = this.props.currentSteam;
-        displayAudioPlayerNotifControl(longName._text);
-    };
+    private updateControlNotif = () => displayAudioPlayerNotifControl(injectedPropReader(this.props.currentSteam).mediumName);
 }
 
 export const Player = connect(

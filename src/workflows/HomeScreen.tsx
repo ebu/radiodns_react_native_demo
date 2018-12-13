@@ -9,13 +9,18 @@ import {Stream} from "../models/Stream";
 import {RootReducerState} from "../reducers/root-reducer";
 import {setActiveStream} from "../reducers/streams";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
+import {injectedFunctionInvoker} from "../utilities";
 
 interface Props extends NavigationScreenProps {
+    // injected
     loadingStreamsState?: "LOADING" | "ERROR" | "SUCCESS";
     streams?: Stream[];
     setActiveStream?: (stream: Stream) => void;
 }
 
+/**
+ * Home screen with the list of ip stations from a service provider.
+ */
 export class HomeScreenContainer extends React.Component<Props> {
     public static navigationOptions = {
         title: "Home",
@@ -32,7 +37,7 @@ export class HomeScreenContainer extends React.Component<Props> {
                 {this.props.loadingStreamsState === "SUCCESS" &&
                 <FlatList
                     style={{width: "100%"}}
-                    data={this.props.streams}
+                    data={this.props.streams || []}
                     renderItem={this.renderStream}
                 />}
                 {this.props.loadingStreamsState === "ERROR" &&
@@ -48,8 +53,12 @@ export class HomeScreenContainer extends React.Component<Props> {
             onPress={this.activateAndNavigateToStream(item)}
         />);
 
+    /**
+     * Creates a function that can set the current active stream and navigate to the player view.
+     * @param stream: The stream that would be active.
+     */
     private activateAndNavigateToStream = (stream: Stream) => () => {
-        this.props.setActiveStream(stream);
+        injectedFunctionInvoker(this.props.setActiveStream, stream);
         this.props.navigation.navigate("PlayerView")
     }
 }

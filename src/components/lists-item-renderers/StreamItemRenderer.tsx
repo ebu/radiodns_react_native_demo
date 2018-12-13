@@ -1,14 +1,21 @@
 import * as React from "react";
-import {Text, TouchableOpacity} from "react-native";
+import {TouchableOpacity} from "react-native";
 import {Avatar} from "react-native-elements";
 import {Stream} from "../../models/Stream";
 import {getMedia} from "../../utilities";
+import {MediumText} from "../texts/MediumText";
 
 interface Props {
     stream: Stream;
+    // callback for when one touch this component.
     onPress: () => void;
 }
 
+/**
+ * Renders the stream logo and its medium name. Wrapped in a Touchable opacity for interactivity.
+ * @param props: The component props.
+ * @constructor
+ */
 export const StreamItemRenderer: React.FC<Props> = (props) => (
     <TouchableOpacity
         style={{
@@ -20,10 +27,10 @@ export const StreamItemRenderer: React.FC<Props> = (props) => (
         onPress={props.onPress}
     >
         <Avatar
-            small
+            medium
             rounded
-            source={{uri: getMedia(props.stream.mediaDescription)}}
+            source={{uri: getMedia(props.stream.streamLogos)}}
         />
-        <Text style={{marginLeft: 10}}>{props.stream.longName._text}</Text>
+        <MediumText style={{marginLeft: 10}}>{props.stream.mediumName}</MediumText>
     </TouchableOpacity>
 );
