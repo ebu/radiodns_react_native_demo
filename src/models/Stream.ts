@@ -3,7 +3,7 @@ import {LinkAttributes} from "./SPIModel";
 /**
  * Describes a stream logo.
  */
-export interface StreamLogos {
+export interface Logo {
     height: number;
     type: string;
     url: string;
@@ -39,7 +39,7 @@ export interface Stream {
         lang: string,
     },
     // Station's logos
-    streamLogos: StreamLogos[],
+    streamLogos: Logo[],
     // RadioDns informations.
     radiodns: {
         fqdn: string;

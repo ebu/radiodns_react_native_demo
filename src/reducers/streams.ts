@@ -4,13 +4,11 @@
  * (https://github.com/erikras/ducks-modular-redux).
  */
 import {Action} from "redux";
-import {ParsedServiceWithBearer, ParsedSPIFile} from "../models/SPIModel";
 import {Stream} from "../models/Stream";
-import {isWebScheme, parsedServiceToStream} from "../utilities";
 
 // Types
 interface StreamsLoadAction extends Action<typeof FETCH_SERVICES_SUCCESS> {
-    spiFile: ParsedSPIFile;
+    streams: Stream[];
 }
 
 interface StreamsSetActiveAction extends Action<typeof SET_ACTIVE> {
@@ -86,22 +84,7 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
         case GET_SERVICES:
             return {...state, loadingStreamsState: "LOADING"};
         case FETCH_SERVICES_SUCCESS:
-            if (!action.spiFile.serviceInformation.services.service) {
-                return {...state, loadingStreamsState: "ERROR"};
-            }
-            const streams: Stream[] = action.spiFile.serviceInformation.services.service
-                .filter((service) => {
-                    if (service.bearer) {
-                        return Array.isArray(service.bearer)
-                            ? service.bearer
-                                .some((bearer) => isWebScheme(bearer._attributes.id ? bearer._attributes.id : ""))
-                            : isWebScheme(service.bearer._attributes.id ? service.bearer._attributes.id : "")
-                    }
-                    return false;
-                })
-                // Typescript doesn't know but here by filtering bearers we ensured that we have one.
-                .map((stream) => parsedServiceToStream(stream as ParsedServiceWithBearer));
-            return {...state, loadingStreamsState: "SUCCESS", streams};
+            return {...state, loadingStreamsState: "SUCCESS", streams: Array.from(action.streams)};
         case FETCH_SERVICES_FAILURE:
             return {...state, loadingStreamsState: "ERROR"};
         case SET_ACTIVE:
@@ -154,9 +137,9 @@ export const streamsLoading: () => Action<typeof GET_SERVICES> = () => ({
     type: GET_SERVICES,
 });
 
-export const loadStreams: (spiFile: ParsedSPIFile) => StreamsLoadAction = (spiFile) => ({
+export const loadStreams: (streams: Stream[]) => StreamsLoadAction = (streams) => ({
     type: FETCH_SERVICES_SUCCESS,
-    spiFile,
+    streams,
 });
 
 export const loadStreamsFailed: () => Action<typeof FETCH_SERVICES_FAILURE> = () => ({

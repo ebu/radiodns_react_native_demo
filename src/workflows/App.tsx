@@ -1,23 +1,18 @@
-import axios from "axios";
 import * as React from "react";
 import {AppState, AppStateStatus} from "react-native";
 import PushNotification from "react-native-push-notification";
 // @ts-ignore
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
-import {xml2js} from "xml-js";
 import {Player} from "../components/media/Player";
-import {BASE_URL, SPI_3_1} from "../constants";
+import {DEBUG} from "../constants";
 import {store} from "../reducers/root-reducer";
-import {loadStreams, loadStreamsFailed} from "../reducers/streams";
+import {clearCache} from "../services/SPICache";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 import {cancelAudioPlayerNotifControl} from "../utilities";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
-
-export const client = axios.create({
-    baseURL: BASE_URL,
-});
+import {StreamsView} from "./StreamsView";
 
 /**
  * Main component for the application. Hosts axios http client and if the root for the redux
@@ -29,6 +24,9 @@ export default class App extends React.Component {
         {
             Home: {
                 screen: HomeScreen,
+            },
+            StreamsView: {
+                screen: StreamsView,
             },
             PlayerView: {
                 screen: PlayerView,
@@ -50,6 +48,10 @@ export default class App extends React.Component {
     ));
 
     public async componentWillMount() {
+        if (DEBUG) {
+            await clearCache();
+        }
+
         // [IOS ONLY] ask permissions to display local notifications.
         PushNotification.configure({
             permissions: {
@@ -62,16 +64,6 @@ export default class App extends React.Component {
 
         // Subscribe to the app state changes (forground, background, inactive).
         AppState.addEventListener("change", this.handleAppStateChange);
-
-        // Get metadata.
-        // TODO determine some mechanism to refresh them from time to time.
-        const res = await client.get(SPI_3_1);
-        if (res.status !== 200 || !res.data) {
-            store.dispatch(loadStreamsFailed())
-        } else {
-            const streams = xml2js(res.data, {compact: true}) as any;
-            store.dispatch(loadStreams(streams));
-        }
     }
 
     public componentWillUnmount() {

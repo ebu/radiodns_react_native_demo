@@ -1,74 +1,37 @@
 import * as React from "react";
-import {ActivityIndicator, FlatList, ListRenderItemInfo} from "react-native";
+import PhotoGrid from "react-native-photo-grid";
 import {NavigationScreenProps} from "react-navigation";
-import {connect} from "react-redux";
-import {StreamItemRenderer} from "../components/lists-item-renderers/StreamItemRenderer";
-import {BigText} from "../components/texts/BigText";
-import {BaseView} from "../components/views/BaseView";
-import {Stream} from "../models/Stream";
-import {RootReducerState} from "../reducers/root-reducer";
-import {setActiveStream} from "../reducers/streams";
-import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
-import {injectedFunctionInvoker} from "../utilities";
-
-interface Props extends NavigationScreenProps {
-    // injected
-    loadingStreamsState?: "LOADING" | "ERROR" | "SUCCESS";
-    streams?: Stream[];
-    setActiveStream?: (stream: Stream) => void;
-}
+import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
+import {SERVICE_PROVIDERS} from "../constants";
 
 /**
- * Home screen with the list of ip stations from a service provider.
+ * Home screen with the list of service providers.
  */
-export class HomeScreenContainer extends React.Component<Props> {
+export class HomeScreen extends React.Component<NavigationScreenProps, Array<{ id: number, key: string }>> {
     public static navigationOptions = {
         title: "Home",
     };
 
+    public readonly state = SERVICE_PROVIDERS.map((key, i) => {
+        return {id: i, key};
+    });
+
     public render() {
         return (
-            <BaseView backgroundColor={COLOR_PRIMARY}>
-                {this.props.loadingStreamsState === "LOADING" &&
-                <>
-                    <ActivityIndicator size="large" style={{width: 80, height: 80}} color={COLOR_SECONDARY}/>
-                    <BigText>Loading metadata...</BigText>
-                </>}
-                {this.props.loadingStreamsState === "SUCCESS" &&
-                <FlatList
-                    style={{width: "100%"}}
-                    data={this.props.streams || []}
-                    renderItem={this.renderStream}
-                />}
-                {this.props.loadingStreamsState === "ERROR" &&
-                <BigText>Failed to load the metadata.</BigText>}
-            </BaseView>
+            <PhotoGrid
+                data={this.state}
+                itemsPerRow={4}
+                renderItem={this.renderItem}
+            />
         );
     }
 
-    private renderStream = ({item, index}: ListRenderItemInfo<Stream>) => (
-        <StreamItemRenderer
-            key={index}
-            stream={item}
-            onPress={this.activateAndNavigateToStream(item)}
-        />);
-
-    /**
-     * Creates a function that can set the current active stream and navigate to the player view.
-     * @param stream: The stream that would be active.
-     */
-    private activateAndNavigateToStream = (stream: Stream) => () => {
-        injectedFunctionInvoker(this.props.setActiveStream, stream);
-        this.props.navigation.navigate("PlayerView")
-    }
+    private renderItem = (item: { id: number, key: string }, itemSize: number) => (
+        <ServiceProviderRenderer
+            navigationProp={this.props}
+            key={item.id}
+            itemSize={itemSize}
+            serviceProviderKey={item.key}
+        />
+    );
 }
-
-export const HomeScreen = connect(
-    (state: RootReducerState) => ({
-        loadingStreamsState: state.streams.loadingStreamsState,
-        streams: state.streams.streams,
-    }),
-    ((dispatch) => ({
-        setActiveStream: (stream: Stream) => dispatch(setActiveStream(stream)),
-    })),
-)(HomeScreenContainer);

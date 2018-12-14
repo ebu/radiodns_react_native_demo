@@ -76,8 +76,8 @@ export interface ParsedService {
 }
 
 export interface ParsedServiceProvider {
-    geolocation?: {
-        country: {
+    geolocation: {
+        country?: {
             _text: string;
         },
     },
@@ -97,7 +97,7 @@ export interface ParsedSPIFile {
     },
     serviceInformation: {
         services: {
-            service?: ParsedService[],
+            service?: ArrayOrOne<ParsedService>,
             serviceProvider?: ParsedServiceProvider,
         },
     },
