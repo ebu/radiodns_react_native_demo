@@ -18,6 +18,7 @@ interface Props extends NavigationScreenProps {
     loadingStreamsState?: "LOADING" | "ERROR" | "SUCCESS";
     streams?: Stream[];
     setActiveStream?: (stream: Stream) => void;
+    searchedStream?: string;
 }
 
 /**
@@ -40,8 +41,10 @@ export class StreamsViewContainer extends React.Component<Props> {
                 {this.props.loadingStreamsState === "SUCCESS" &&
                 <FlatList
                     style={{width: "100%"}}
-                    data={this.props.streams ? this.props.streams.filter((s) => s.visible) : []}
+                    data={this.props.streams ? this.props.streams.filter((stream) =>
+                        stream.mediumName.toLocaleLowerCase().includes(this.props.searchedStream || "")) : []}
                     renderItem={this.renderStream}
+                    extraData={this.props.searchedStream}
                 />}
                 {this.props.loadingStreamsState === "ERROR" &&
                 <BigText>Failed to load the metadata.</BigText>}

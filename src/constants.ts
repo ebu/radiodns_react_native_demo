@@ -4,7 +4,7 @@ export const SPI_3_1 = "/radiodns/spi/3.1/SI.xml";
 
 export const CACHE_SPI_MAX_AGE = 21600000; // ms
 
-export const DEBUG = __DEV__;
+export const DEBUG = false; // __DEV__;
 
 export const SERVICE_PROVIDERS = [
     "https://atorf.spi.radio.ebu.io",

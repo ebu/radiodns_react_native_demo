@@ -45,5 +45,4 @@ export interface Stream {
         fqdn: string;
         serviceIdentifier: string;
     },
-    visible: boolean;
 }

@@ -1,6 +1,5 @@
-import PushNotification from "react-native-push-notification";
-import {PUSH_NOTIFICATION_ID} from "./constants";
-import {Logo} from "./models/Stream";
+import MusicControl from "react-native-music-control";
+import {Logo, Stream} from "./models/Stream";
 
 /**
  * Returns the media to be displayed for the stream. This is really an example implementation and one should come with
@@ -22,24 +21,21 @@ export const isWebScheme: (url: string) => boolean = (url) =>
  * @param streamName: The name of the stream.
  */
 // @ts-ignore
-export const displayAudioPlayerNotifControl = (streamName: string) => {
-    // PushNotification.localNotification({
-    //     /* Android Only Properties */
-    //     id: PUSH_NOTIFICATION_ID,
-    //     autoCancel: false,
-    //     bigText: "Metadata provided by EBU.io",
-    //     vibrate: false,
-    //     /* iOS and Android properties */
-    //     title: "Now playing: " + streamName,
-    //     message: "Metadata provided by EBU.io",
-    //     playSound: false,
-    // })
+export const displayAudioPlayerNotifControl = (stream: Stream) => {
+    MusicControl.setNowPlaying({
+        title: stream.mediumName,
+        artwork: getMedia(stream.streamLogos), // URL or RN's image require()
+        description: "", // Android Only
+    });
+    MusicControl.updatePlayback({
+        state: MusicControl.STATE_PLAYING,
+    });
 };
 
 /**
  * [ANDROID ONLY] Cancels the local notification (dismiss it).
  */
-export const cancelAudioPlayerNotifControl = () => (PushNotification as any).clearLocalNotification(parseInt(PUSH_NOTIFICATION_ID, 10));
+export const cancelAudioPlayerNotifControl = () => MusicControl.resetNowPlaying();
 
 export const injectedFunctionInvoker: (fn?: (...args: any[]) => any, ...args: any[]) => any = (fn, args) => fn ? fn(args) : {};
 export const injectedPropReader: <T>(arg: T | undefined | null) => T = (arg) => arg ? arg : {} as any;

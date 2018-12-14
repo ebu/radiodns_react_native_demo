@@ -1,3 +1,5 @@
+import MusicControl from "react-native-music-control";
+
 /**
  * Streams reducer. Stores the available streams that were recovered from radiodns and holds the information
  * about the currently played stream. This reducer uses the ducks-modular-redux pattern
@@ -5,6 +7,7 @@
  */
 import {Action} from "redux";
 import {Stream} from "../models/Stream";
+import {displayAudioPlayerNotifControl, injectedPropReader} from "../utilities";
 
 // Types
 interface StreamsLoadAction extends Action<typeof FETCH_SERVICES_SUCCESS> {
@@ -98,8 +101,19 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
         case SET_ACTIVE:
             return setNewIndexHelper({...state, activeStream: action.activeStream, error: false}, getIndexFromActive);
         case SET_LOADING:
+            if (!state.error) {
+                MusicControl.updatePlayback({
+                    state: action.loading ? MusicControl.STATE_BUFFERING : MusicControl.STATE_PLAYING,
+                });
+            }
             return {...state, loading: action.loading, error: false};
         case SET_PAUSED:
+            if (!state.error) {
+                displayAudioPlayerNotifControl(injectedPropReader(state.activeStream));
+                MusicControl.updatePlayback({
+                    state: action.paused ? MusicControl.STATE_PAUSED : MusicControl.STATE_PLAYING,
+                });
+            }
             return {...state, paused: action.paused};
         case SET_ACTIVE_NEXT:
             return setNewIndexHelper({
@@ -111,15 +125,14 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
         case SET_VOLUME:
             return {...state, volume: action.volume};
         case SET_ERROR:
+            MusicControl.updatePlayback({
+                state: MusicControl.STATE_ERROR,
+            });
             return {...state, error: action.error};
         case SET_VISIBILITY:
             return {
                 ...state,
-                streams: state.streams.map((stream) => {
-                    stream.visible = stream.mediumName.includes(action.searchedStream);
-                    return stream;
-                }),
-                searchedStream: action.searchedStream,
+                searchedStream: action.searchedStream.toLocaleLowerCase(),
             };
         default:
             return state;
@@ -132,6 +145,9 @@ const setNewIndexHelper = (state: StreamsReducerState, updateFn: (state: Streams
     }
 
     const index = updateFn(state);
+    if (!state.error) {
+        displayAudioPlayerNotifControl(state.streams[index]);
+    }
     return {
         ...state,
         index,

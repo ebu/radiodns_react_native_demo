@@ -5,7 +5,7 @@ import {Dispatch} from "redux";
 import {Stream} from "../../models/Stream";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setErrorStream, setStreamLoadingState} from "../../reducers/streams";
-import {displayAudioPlayerNotifControl, injectedFunctionInvoker, injectedPropReader} from "../../utilities";
+import {injectedFunctionInvoker} from "../../utilities";
 
 interface Props {
     // injected props
@@ -56,7 +56,6 @@ class PlayerContainer extends React.Component<Props> {
     // MEDIA HANDLING
     private onMediaReady = () => {
         injectedFunctionInvoker(this.props.setStreamLoadingState, false);
-        this.updateControlNotif();
     };
 
     private onProgress = () => {
@@ -74,11 +73,8 @@ class PlayerContainer extends React.Component<Props> {
     private onError = (e: LoadError) => {
         // TODO display error on both notif and screen.
         injectedFunctionInvoker(this.props.setErrorStream, true);
-        this.updateControlNotif();
         console.error(e.error)
     };
-
-    private updateControlNotif = () => displayAudioPlayerNotifControl(injectedPropReader(this.props.currentSteam).mediumName);
 }
 
 export const Player = connect(

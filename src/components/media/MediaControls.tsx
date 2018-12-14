@@ -66,7 +66,7 @@ class MediaControlsContainer extends React.Component<Props> {
         injectedFunctionInvoker(this.props.setStreamPausedState, paused);
     };
 
-    private updateControlNotif = () => displayAudioPlayerNotifControl(injectedPropReader(this.props.currentSteam).mediumName);
+    private updateControlNotif = () => displayAudioPlayerNotifControl(injectedPropReader(this.props.currentSteam));
 }
 
 export const MediaControls = connect(

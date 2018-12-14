@@ -1,16 +1,16 @@
 import * as React from "react";
 import {AppState, AppStateStatus} from "react-native";
-import PushNotification from "react-native-push-notification";
+import MusicControl from "react-native-music-control";
 // @ts-ignore
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
 import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
+import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
 import {DEBUG} from "../constants";
 import {store} from "../reducers/root-reducer";
 import {clearCache} from "../services/SPICache";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
-import {cancelAudioPlayerNotifControl} from "../utilities";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
 import {StreamsView} from "./StreamsView";
@@ -53,16 +53,6 @@ export default class App extends React.Component {
             await clearCache();
         }
 
-        // [IOS ONLY] ask permissions to display local notifications.
-        PushNotification.configure({
-            permissions: {
-                alert: true,
-                badge: true,
-                sound: true,
-            },
-            requestPermissions: true,
-        });
-
         // Subscribe to the app state changes (forground, background, inactive).
         AppState.addEventListener("change", this.handleAppStateChange);
     }
@@ -79,6 +69,7 @@ export default class App extends React.Component {
                     <Player/>
                 </PlayerErrorBoundary>
                 <this.AppNavigator/>
+                <BackgroundController/>
             </Provider>
         );
     }
@@ -86,7 +77,7 @@ export default class App extends React.Component {
     private handleAppStateChange = (nextAppState: AppStateStatus) => {
         // When user explicitly kills the app, cancel local notification.
         if (nextAppState === "inactive") {
-            cancelAudioPlayerNotifControl();
+            MusicControl.stopControl()
         }
     }
 }

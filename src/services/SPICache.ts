@@ -126,7 +126,6 @@ const parsedServiceToStream: (service: ParsedServiceWithBearer) => Stream = (ser
             }))
             : [],
         radiodns: {...service.radiodns._attributes},
-        visible: true,
     }
 };
 
