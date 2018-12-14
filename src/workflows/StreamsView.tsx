@@ -2,6 +2,7 @@ import * as React from "react";
 import {ActivityIndicator, FlatList, ListRenderItemInfo} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
+import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPausePlayButton";
 import {StreamItemRenderer} from "../components/renderers/StreamItemRenderer";
 import {BigText} from "../components/texts/BigText";
 import {BaseView} from "../components/views/BaseView";
@@ -42,6 +43,7 @@ export class StreamsViewContainer extends React.Component<Props> {
                 />}
                 {this.props.loadingStreamsState === "ERROR" &&
                 <BigText>Failed to load the metadata.</BigText>}
+                <FloatingMediaControlsButton/>
             </BaseView>
         );
     }

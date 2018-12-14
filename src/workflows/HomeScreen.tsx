@@ -1,6 +1,7 @@
 import * as React from "react";
 import PhotoGrid from "react-native-photo-grid";
 import {NavigationScreenProps} from "react-navigation";
+import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPausePlayButton";
 import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
 import {SERVICE_PROVIDERS} from "../constants";
 
@@ -18,11 +19,14 @@ export class HomeScreen extends React.Component<NavigationScreenProps, Array<{ i
 
     public render() {
         return (
-            <PhotoGrid
-                data={this.state}
-                itemsPerRow={4}
-                renderItem={this.renderItem}
-            />
+            <>
+                <PhotoGrid
+                    data={this.state}
+                    itemsPerRow={4}
+                    renderItem={this.renderItem}
+                />
+                <FloatingMediaControlsButton/>
+            </>
         );
     }
 

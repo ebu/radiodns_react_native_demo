@@ -21,18 +21,19 @@ export const isWebScheme: (url: string) => boolean = (url) =>
  * Displays a local notification with the name of the played stream.
  * @param streamName: The name of the stream.
  */
+// @ts-ignore
 export const displayAudioPlayerNotifControl = (streamName: string) => {
-    PushNotification.localNotification({
-        /* Android Only Properties */
-        id: PUSH_NOTIFICATION_ID,
-        autoCancel: false,
-        bigText: "Metadata provided by EBU.io",
-        vibrate: false,
-        /* iOS and Android properties */
-        title: "Now playing: " + streamName,
-        message: "Metadata provided by EBU.io",
-        playSound: false,
-    })
+    // PushNotification.localNotification({
+    //     /* Android Only Properties */
+    //     id: PUSH_NOTIFICATION_ID,
+    //     autoCancel: false,
+    //     bigText: "Metadata provided by EBU.io",
+    //     vibrate: false,
+    //     /* iOS and Android properties */
+    //     title: "Now playing: " + streamName,
+    //     message: "Metadata provided by EBU.io",
+    //     playSound: false,
+    // })
 };
 
 /**
