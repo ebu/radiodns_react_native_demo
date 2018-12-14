@@ -4,6 +4,7 @@ import PushNotification from "react-native-push-notification";
 // @ts-ignore
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
+import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
 import {Player} from "../components/media/Player";
 import {DEBUG} from "../constants";
 import {store} from "../reducers/root-reducer";
@@ -74,7 +75,9 @@ export default class App extends React.Component {
     public render() {
         return (
             <Provider store={store}>
-                <Player/>
+                <PlayerErrorBoundary>
+                    <Player/>
+                </PlayerErrorBoundary>
                 <this.AppNavigator/>
             </Provider>
         );

@@ -28,6 +28,10 @@ class PlayerContainer extends React.Component<Props> {
             return null;
         }
         const uri = this.props.currentSteam.bearer.id;
+        if (typeof uri !== "string") {
+            injectedFunctionInvoker(this.props.setErrorStream, true);
+            return null;
+        }
         return (
             <Video
                 ref={this.onRef}

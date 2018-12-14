@@ -1,5 +1,5 @@
 import * as React from "react";
-import {ActivityIndicator, Image, TouchableOpacity} from "react-native";
+import {ActivityIndicator, Image, Text, TouchableOpacity} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {Stream} from "../../models/Stream";
@@ -12,6 +12,7 @@ interface Props {
     serviceProviderKey: string;
     itemSize: number;
     navigationProp: NavigationScreenProps;
+    onInvalidData: (key: string) => void;
 
     // injected
     streamsLoading?: () => void;
@@ -36,9 +37,17 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
         loading: true,
     };
 
-    public async componentWillMount() {
-        const cacheResponse = await getFromSPICache(this.props.serviceProviderKey);
-        this.setState({cacheResponse, loading: false})
+    public async componentDidMount() {
+        try {
+            const cacheResponse = await getFromSPICache(this.props.serviceProviderKey);
+            if (!cacheResponse.streams || cacheResponse.streams.length === 0) {
+                this.props.onInvalidData(this.props.serviceProviderKey);
+                return;
+            }
+            this.setState({cacheResponse, loading: false})
+        } catch (e) {
+            console.warn(e);
+        }
     }
 
     public render() {
@@ -61,6 +70,8 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                         }}
                     />
                 </TouchableOpacity>}
+                {!this.state.loading && this.state.cacheResponse && this.state.cacheResponse.error &&
+                <Text style={{width: this.props.itemSize, height: this.props.itemSize}}>Failed to load.</Text>}
             </>
         );
     }

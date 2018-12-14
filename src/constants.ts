@@ -4,7 +4,7 @@ export const SPI_3_1 = "/radiodns/spi/3.1/SI.xml";
 
 export const CACHE_SPI_MAX_AGE = 21600000; // ms
 
-export const DEBUG = false;
+export const DEBUG = __DEV__;
 
 export const SERVICE_PROVIDERS = [
     "https://atorf.spi.radio.ebu.io",
@@ -12,7 +12,6 @@ export const SERVICE_PROVIDERS = [
     "https://bevrt.spi.radio.ebu.io",
     "https://charga.spi.radio.ebu.io",
     "https://chbeo.spi.radio.ebu.io",
-    "https://chbnan.spi.radio.ebu.io",
     "https://chbnj.spi.radio.ebu.io",
     "https://chmaxx.spi.radio.ebu.io",
     "https://chplts.spi.radio.ebu.io",

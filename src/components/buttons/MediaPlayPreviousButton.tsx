@@ -22,7 +22,7 @@ const MediaPlayPreviousButtonContainer: React.FC<Props> = (props) => (
         big
         color={props.color}
         backgroundColor={props.color}
-        iconName={"chevron-right"}
+        iconName={"skip-next"}
         onPress={props.onPreviousPressed}
     />
 );

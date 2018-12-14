@@ -29,7 +29,9 @@ export const StreamItemRenderer: React.FC<Props> = (props) => (
         <Avatar
             medium
             rounded
-            source={{uri: getMedia(props.stream.streamLogos)}}
+            source={getMedia(props.stream.streamLogos) === ""
+                ? require("../../../ressources/ebu_logo.png")
+                : {uri: getMedia(props.stream.streamLogos)}}
         />
         <MediumText style={{marginLeft: 10}}>{props.stream.mediumName}</MediumText>
     </TouchableOpacity>

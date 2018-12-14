@@ -31,6 +31,10 @@ interface StreamsSetVolume extends Action<typeof SET_VOLUME> {
     volume: number;
 }
 
+interface StreamsSetVisibility extends Action<typeof SET_VISIBILITY> {
+    searchedStream: string;
+}
+
 type StreamsActions = Action<typeof GET_SERVICES>
     | StreamsLoadAction
     | Action<typeof FETCH_SERVICES_FAILURE>
@@ -40,6 +44,7 @@ type StreamsActions = Action<typeof GET_SERVICES>
     | Action<typeof SET_ACTIVE_NEXT>
     | Action<typeof SET_ACTIVE_PREVIOUS>
     | StreamsSetVolume
+    | StreamsSetVisibility
     | StreamsSetError;
 
 export interface StreamsReducerState {
@@ -51,6 +56,7 @@ export interface StreamsReducerState {
     index: number;
     volume: number; // [0, 1] float
     error: boolean;
+    searchedStream: string;
 }
 
 // Actions
@@ -64,6 +70,7 @@ const SET_ACTIVE_NEXT = "radiodns_react_native_technical_demo/streams/SET_ACTIVE
 const SET_ACTIVE_PREVIOUS = "radiodns_react_native_technical_demo/streams/SET_ACTIVE_PREVIOUS";
 const SET_VOLUME = "radiodns_react_native_technical_demo/streams/SET_VOLUME";
 const SET_ERROR = "radiodns_react_native_technical_demo/streams/SET_ERROR";
+const SET_VISIBILITY = "radiodns_react_native_technical_demo/streams/SET_VISIBILITY";
 
 // Reducer
 
@@ -76,6 +83,7 @@ export const STREAMS_REDUCER_DEFAULT_STATE: StreamsReducerState = {
     index: 0,
     volume: 1,
     error: false,
+    searchedStream: "",
 };
 
 // TODO add catch to prevent parsing errors form crashing the app.
@@ -84,7 +92,7 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
         case GET_SERVICES:
             return {...state, loadingStreamsState: "LOADING"};
         case FETCH_SERVICES_SUCCESS:
-            return {...state, loadingStreamsState: "SUCCESS", streams: Array.from(action.streams)};
+            return {...state, loadingStreamsState: "SUCCESS", streams: Array.from(action.streams), searchedStream: ""};
         case FETCH_SERVICES_FAILURE:
             return {...state, loadingStreamsState: "ERROR"};
         case SET_ACTIVE:
@@ -104,6 +112,15 @@ export function reducer(state: StreamsReducerState = STREAMS_REDUCER_DEFAULT_STA
             return {...state, volume: action.volume};
         case SET_ERROR:
             return {...state, error: action.error};
+        case SET_VISIBILITY:
+            return {
+                ...state,
+                streams: state.streams.map((stream) => {
+                    stream.visible = stream.mediumName.includes(action.searchedStream);
+                    return stream;
+                }),
+                searchedStream: action.searchedStream,
+            };
         default:
             return state;
     }
@@ -177,4 +194,9 @@ export const setVolumeStream: (volume: number) => StreamsSetVolume = (volume) =>
 export const setErrorStream: (error: boolean) => StreamsSetError = (error) => ({
     type: SET_ERROR,
     error,
+});
+
+export const setStreamsVisibility: (searchedStream: string) => StreamsSetVisibility = (searchedStream) => ({
+    type: SET_VISIBILITY,
+    searchedStream,
 });

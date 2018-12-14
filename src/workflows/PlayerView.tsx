@@ -5,7 +5,6 @@ import GestureRecognizer from "react-native-swipe-gestures";
 import {NavigationScreenConfig, NavigationScreenOptions, NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {PlayerErrorDisplay} from "../components/error-boundaries/PlayerErrorDisplay";
 import {MediaControls} from "../components/media/MediaControls";
 import {SoundBar} from "../components/media/SoundBar";
 import {BigText} from "../components/texts/BigText";
@@ -16,6 +15,7 @@ import {RootReducerState} from "../reducers/root-reducer";
 import {setNextStream, setPreviousStream} from "../reducers/streams";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 import {getMedia, injectedFunctionInvoker} from "../utilities";
+import {PlayerErrorDisplay} from "./PlayerErrorDisplay";
 
 interface Props extends NavigationScreenProps {
     // injected
@@ -40,10 +40,12 @@ class PlayerViewContainer extends React.Component<Props> {
                 onSwipeLeft={this.onSwipeLeft}
                 onSwipeRight={this.onSwipeRight}
             >
+                {!this.props.activeStream &&
                 <BaseView backgroundColor={COLOR_PRIMARY}>
-                    {!this.props.activeStream &&
-                    <BigText>No stations to listen to!</BigText>}
-                    {this.props.activeStream && <PlayerErrorDisplay>
+                    <BigText>No stations to listen to!</BigText>
+                </BaseView>}
+                {this.props.activeStream && <PlayerErrorDisplay>
+                    <BaseView backgroundColor={COLOR_PRIMARY}>
                         <Image
                             style={{
                                 width: 350,
@@ -58,9 +60,8 @@ class PlayerViewContainer extends React.Component<Props> {
                         <View style={{flex: 0.4}}/>
                         <SoundBar/>
                         <MediaControls/>
-
-                    </PlayerErrorDisplay>}
-                </BaseView>
+                    </BaseView>
+                </PlayerErrorDisplay>}
             </GestureRecognizer>
         );
     }

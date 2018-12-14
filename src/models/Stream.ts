@@ -16,7 +16,7 @@ export interface Logo {
 export interface Stream {
     // Selected channel from metadata to listen to the ip station.
     bearer: {
-        id: string;
+        id: string | null;
         cost: string;
         offset?: number;
         mimeValue: "audio/aacp" | "audio/mpeg";
@@ -45,4 +45,5 @@ export interface Stream {
         fqdn: string;
         serviceIdentifier: string;
     },
+    visible: boolean;
 }

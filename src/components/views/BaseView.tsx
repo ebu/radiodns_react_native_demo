@@ -2,7 +2,7 @@ import * as React from "react";
 import {View} from "react-native";
 
 interface Props {
-    backgroundColor: string;
+    backgroundColor?: string;
 }
 
 export const BaseView: React.FC<Props> = (props) => (
