@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {setNextStream} from "../../reducers/streams";
+import {setNextStation} from "../../reducers/stations";
 import {IconButton} from "./IconButton";
 
 interface Props {
@@ -14,7 +14,7 @@ interface Props {
 }
 
 /**
- * Player control button, ready to use as it is. Will set the next active stream when pressed.
+ * Player control button, ready to use as it is. Will set the next active station when pressed.
  * @param props: The component props.
  */
 const MediaPlayNextButtonContainer: React.FC<Props> = (props) => (
@@ -30,6 +30,6 @@ const MediaPlayNextButtonContainer: React.FC<Props> = (props) => (
 export const MediaPlayNextButton = connect(
     () => ({}),
     ((dispatch: Dispatch) => ({
-        onNextPressed: () => dispatch(setNextStream()),
+        onNextPressed: () => dispatch(setNextStation()),
     })),
 )(MediaPlayNextButtonContainer);

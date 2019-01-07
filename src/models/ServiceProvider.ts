@@ -1,5 +1,5 @@
-import {LinkAttributes} from "./SPIModel";
-import {Logo} from "./Stream";
+import {RawLinkAttributes} from "./RawSPI";
+import {Logo} from "./Station";
 
 interface LocalizedText {
     text: string;
@@ -10,7 +10,7 @@ export interface ServiceProvider {
     geolocation: {
         country: string;
     },
-    link: LinkAttributes[],
+    link: RawLinkAttributes[],
     shortName: LocalizedText,
     mediumName: LocalizedText,
     longName: LocalizedText,

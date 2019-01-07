@@ -1,13 +1,5 @@
 import * as React from "react";
-import {Dimensions, FlatList, ListRenderItemInfo, StyleSheet, View} from "react-native";
-
-const styles = StyleSheet.create({
-    row: {
-        flex: 1,
-        flexDirection: "row",
-        justifyContent: "space-between",
-    },
-});
+import {Dimensions, FlatList, ListRenderItemInfo, View} from "react-native";
 
 interface Props {
     data: string[];
@@ -16,6 +8,9 @@ interface Props {
     renderItem: (item: string, itemWidth: number) => JSX.Element;
 }
 
+/**
+ * View containing a configurable image grid.
+ */
 export class PhotoGrid extends React.Component<Props> {
 
     public buildRows(items: string[], itemsPerRow = 3): string[][] {
@@ -44,8 +39,8 @@ export class PhotoGrid extends React.Component<Props> {
         );
     }
 
-    private renderRow = (lrii: ListRenderItemInfo<string[]>) => {
-        const items = lrii.item;
+    private renderRow = (listRenderItemInfo: ListRenderItemInfo<string[]>) => {
+        const items = listRenderItemInfo.item;
         // Calculate the width of a single item based on the device width
         // and the desired margins between individual items
         const deviceWidth = Dimensions.get("window").width;
@@ -57,7 +52,14 @@ export class PhotoGrid extends React.Component<Props> {
         const adjustedMargin = (deviceWidth - (itemsPerRow * itemWidth)) / (itemsPerRow - 1);
 
         return (
-            <View style={[styles.row, {marginBottom: adjustedMargin}]}>
+            <View
+                style={{
+                    flex: 1,
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    marginBottom: adjustedMargin,
+                }}
+            >
                 {items.map((item) => this.props.renderItem(item, itemWidth))}
             </View>
         );

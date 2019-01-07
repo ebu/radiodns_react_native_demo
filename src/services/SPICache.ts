@@ -2,65 +2,87 @@ import axios from "axios";
 import {AsyncStorage} from "react-native";
 import {xml2js} from "xml-js";
 import {CACHE_SPI_MAX_AGE, SERVICE_PROVIDERS, SPI_3_1} from "../constants";
+import {RawService, RawServiceProvider, RawServiceWithBearer, RawSPIFile} from "../models/RawSPI";
 import {ServiceProvider} from "../models/ServiceProvider";
-import {ParsedService, ParsedServiceProvider, ParsedServiceWithBearer, ParsedSPIFile} from "../models/SPIModel";
-import {Stream} from "../models/Stream";
+import {Station} from "../models/Station";
 import {isWebScheme} from "../utilities";
 
+/**
+ * Describes a parsed SPI file in cache.
+ */
 export interface SPICacheContainer {
+    // date when the SPI file will become stale. In milliseconds.
     expires: number;
-    streams?: Stream[];
+
+    // stations of this SPI file.
+    stations?: Station[];
+
+    // informations about the service provider.
     serviceProvider?: ServiceProvider;
+
+    // if the SPI file was correctly loaded/parsed.
     error: boolean;
 }
 
-const fetchAndParseSPI: (key: string) => Promise<SPICacheContainer> = async (key) => {
+/**
+ * Fetches and parse and store in the react native async storage a specified SPI file.
+ * @param serviceProviderUrl: The url for the service provider. For example: "https://atorf.spi.radio.ebu.io"
+ */
+const fetchAndPutInCache: (serviceProviderUrl: string) => Promise<SPICacheContainer> = async (serviceProviderUrl) => {
     const res = await axios({
-        url: key + SPI_3_1,
+        url: serviceProviderUrl + SPI_3_1,
     });
+    let cacheContainer: SPICacheContainer | null = null;
 
     if (res.status !== 200 || !res.data) {
-        return {expires: -1, error: true};
+        cacheContainer = {expires: -1, error: true};
     } else {
-        const parsedSPI: ParsedSPIFile = xml2js(res.data, {compact: true}) as any;
+        const parsedSPI: RawSPIFile = xml2js(res.data, {compact: true}) as any;
         const {service, serviceProvider} = parsedSPI.serviceInformation.services;
-        return {
+        cacheContainer = {
             expires: Date.now() + CACHE_SPI_MAX_AGE,
-            streams: service ? parsedServicesToStream(Array.isArray(service) ? service : [service]) : [],
-            serviceProvider: serviceProvider ? parsedServiceProviderToServiceProvider(serviceProvider) : undefined,
+            stations: service ? rawServicesToStations(Array.isArray(service) ? service : [service]) : [],
+            serviceProvider: serviceProvider ? rawServiceProviderToServiceProvider(serviceProvider) : undefined,
             error: false,
-        }
+        };
     }
-};
-
-const fetchAndPutInCache: (key: string) => Promise<SPICacheContainer> = async (key) => {
-    const cacheContainer = await fetchAndParseSPI(key);
-    await AsyncStorage.setItem(key, JSON.stringify(cacheContainer));
+    await AsyncStorage.setItem(serviceProviderUrl, JSON.stringify(cacheContainer));
     return cacheContainer;
 };
 
+/**
+ * Clears the cache for all service providers. It is meant to be used for development purposes.
+ */
 export const clearCache = () =>
     Promise.all(SERVICE_PROVIDERS.map((key) => AsyncStorage.removeItem(key)));
 
-export const getFromSPICache = async (key: string) => {
+/**
+ * Gets an SPI file either from cache or by fetching it.
+ * @param serviceProviderUrl: The url for the service provider. For example: "https://atorf.spi.radio.ebu.io"
+ */
+export const getSPI = async (serviceProviderUrl: string) => {
     let cacheContainer: SPICacheContainer = {expires: -1, error: true};
     try {
-        const value = await AsyncStorage.getItem(key);
+        const value = await AsyncStorage.getItem(serviceProviderUrl);
         if (value) {
             cacheContainer = JSON.parse(value);
             if (cacheContainer.error || Date.now() > cacheContainer.expires) {
-                cacheContainer = await fetchAndPutInCache(key);
+                cacheContainer = await fetchAndPutInCache(serviceProviderUrl);
             }
         } else {
-            cacheContainer = await fetchAndPutInCache(key);
+            cacheContainer = await fetchAndPutInCache(serviceProviderUrl);
         }
     } catch (error) {
-        console.log("ERROR", error);
+        console.error("ERROR", error);
     }
     return cacheContainer;
 };
 
-const parsedServicesToStream = (services: ParsedService[]) => {
+/**
+ * Converts raw services to stations.
+ * @param services: The raw services from an SPI file.
+ */
+const rawServicesToStations = (services: RawService[]) => {
     return services
         .filter((service) => {
             if (service.bearer) {
@@ -72,15 +94,15 @@ const parsedServicesToStream = (services: ParsedService[]) => {
             return false;
         })
         // Typescript doesn't know but here by filtering bearers we ensured that we have one.
-        .map((stream) => parsedServiceToStream(stream as ParsedServiceWithBearer));
+        .map((service) => rawServiceToStation(service as RawServiceWithBearer));
 };
 
 /**
- * Converts a ParsedService object into a Stream object. ParsedService objects are from the parsing of the xml-js
+ * Converts a RawService object into a Station object. RawService objects are from the parsing of the xml-js
  * library.
- * @param service: The ParsedService to convert.
+ * @param service: The RawService to convert.
  */
-const parsedServiceToStream: (service: ParsedServiceWithBearer) => Stream = (service) => {
+const rawServiceToStation: (service: RawServiceWithBearer) => Station = (service) => {
     const parsedBearer = {
         ...(Array.isArray(service.bearer)
             ? service.bearer
@@ -119,7 +141,7 @@ const parsedServiceToStream: (service: ParsedServiceWithBearer) => Stream = (ser
                 lang: "en-Us",
                 text: "No description to display.",
             },
-        streamLogos: service.mediaDescription ? service.mediaDescription.map((mediaDescription) => ({
+        stationLogos: service.mediaDescription ? service.mediaDescription.map((mediaDescription) => ({
                 ...mediaDescription.multimedia._attributes,
                 height: parseInt(mediaDescription.multimedia._attributes.height, 10),
                 width: parseInt(mediaDescription.multimedia._attributes.width, 10),
@@ -129,48 +151,52 @@ const parsedServiceToStream: (service: ParsedServiceWithBearer) => Stream = (ser
     }
 };
 
-const parsedServiceProviderToServiceProvider: (psp: ParsedServiceProvider) => ServiceProvider = (psp) => ({
-    geolocation: psp.geolocation.country ? {country: psp.geolocation.country._text} : {country: "None"},
-    link: psp.link
+/**
+ * Converts a raw service provider to a service provider.
+ * @param rawServiceProvider
+ */
+const rawServiceProviderToServiceProvider: (rawServiceProvider: RawServiceProvider) => ServiceProvider = (rawServiceProvider) => ({
+    geolocation: rawServiceProvider.geolocation.country ? {country: rawServiceProvider.geolocation.country._text} : {country: "None"},
+    link: rawServiceProvider.link
         ? {
-            ...Array.isArray(psp.link)
-                ? psp.link.map((link) => ({...link._attributes}))
-                : [{...psp.link._attributes}],
+            ...Array.isArray(rawServiceProvider.link)
+                ? rawServiceProvider.link.map((link) => ({...link._attributes}))
+                : [{...rawServiceProvider.link._attributes}],
         }
         : [],
-    shortName: psp.shortName ? {
-            lang: psp.shortName._attributes["xml:lang"],
-            text: psp.shortName._text,
+    shortName: rawServiceProvider.shortName ? {
+            lang: rawServiceProvider.shortName._attributes["xml:lang"],
+            text: rawServiceProvider.shortName._text,
         }
         : {
             lang: "en-Us",
             text: "No short name to display.",
         },
-    mediumName: psp.mediumName ? {
-            lang: psp.mediumName._attributes["xml:lang"],
-            text: psp.mediumName._text,
+    mediumName: rawServiceProvider.mediumName ? {
+            lang: rawServiceProvider.mediumName._attributes["xml:lang"],
+            text: rawServiceProvider.mediumName._text,
         }
         : {
             lang: "en-Us",
             text: "No medium name to display.",
         },
-    longName: psp.longName ? {
-            lang: psp.longName._attributes["xml:lang"],
-            text: psp.longName._text,
+    longName: rawServiceProvider.longName ? {
+            lang: rawServiceProvider.longName._attributes["xml:lang"],
+            text: rawServiceProvider.longName._text,
         }
         : {
             lang: "en-Us",
             text: "No long name to display.",
         },
-    shortDescription: psp.shortDescription ? {
-            lang: psp.shortDescription._attributes["xml:lang"],
-            text: psp.shortDescription._text,
+    shortDescription: rawServiceProvider.shortDescription ? {
+            lang: rawServiceProvider.shortDescription._attributes["xml:lang"],
+            text: rawServiceProvider.shortDescription._text,
         }
         : {
             lang: "en-Us",
             text: "No short description to display.",
         },
-    mediaDescription: psp.mediaDescription ? psp.mediaDescription.map((mediaDescription) => ({
+    mediaDescription: rawServiceProvider.mediaDescription ? rawServiceProvider.mediaDescription.map((mediaDescription) => ({
             ...mediaDescription.multimedia._attributes,
             height: parseInt(mediaDescription.multimedia._attributes.height, 10),
             width: parseInt(mediaDescription.multimedia._attributes.width, 10),

@@ -3,12 +3,12 @@ import {View} from "react-native";
 import {Icon} from "react-native-elements";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
+import {COLOR_DANGER, COLOR_PRIMARY} from "../colors";
 import {MediaPlayNextButton} from "../components/buttons/MediaPlayNextButton";
 import {MediaPlayPreviousButton} from "../components/buttons/MediaPlayPreviousButton";
 import {TextDanger} from "../components/texts/TextDanger";
 import {RootReducerState} from "../reducers/root-reducer";
-import {setNextStream, setPreviousStream} from "../reducers/streams";
-import {COLOR_DANGER, COLOR_PRIMARY} from "../styles";
+import {setNextStation, setPreviousStation} from "../reducers/stations";
 
 interface Props {
     // injected
@@ -18,9 +18,8 @@ interface Props {
     closeModal?: () => void;
 }
 
-// TODO verify that we are on the player screen to display this error.
 /**
- * Player error display. Will display an error message if the player failed to load the stream.
+ * Player error display. Will display an error message if the player failed to load the station.
  */
 class PlayerErrorDisplayContainer extends React.Component<Props> {
 
@@ -56,9 +55,9 @@ class PlayerErrorDisplayContainer extends React.Component<Props> {
 }
 
 export const PlayerErrorDisplay = connect(
-    (state: RootReducerState) => ({error: state.streams.error}),
+    (state: RootReducerState) => ({error: state.stations.error}),
     ((dispatch: Dispatch) => ({
-        onNextPressed: () => dispatch(setNextStream()),
-        onPreviousPressed: () => dispatch(setPreviousStream()),
+        onNextPressed: () => dispatch(setNextStation()),
+        onPreviousPressed: () => dispatch(setPreviousStation()),
     })),
 )(PlayerErrorDisplayContainer);

@@ -5,6 +5,10 @@ interface Props {
     backgroundColor?: string;
 }
 
+/**
+ * Base View (layout) for the application.
+ * @param props: Object containing the background color for the view.
+ */
 export const BaseView: React.FC<Props> = (props) => (
     <View
         style={{

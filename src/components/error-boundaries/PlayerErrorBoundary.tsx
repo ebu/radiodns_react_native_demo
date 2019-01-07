@@ -8,15 +8,13 @@ interface Props {
     error?: boolean;
 }
 
-// TODO verify that we are on the player screen to display this error.
 /**
- * Player error display. Will display an error message if the player failed to load the stream.
+ * Player error display. Will display an error message if the player failed to load the station.
  */
 class PlayerErrorBoundaryContainer extends React.Component<Props> {
 
     public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-        // You can also log the error to an error reporting service
-        // TODO Upload this into some sort of monitoring service.
+        // You can also log the error to an error reporting service.
         console.warn(error, errorInfo);
     }
 
@@ -29,5 +27,5 @@ class PlayerErrorBoundaryContainer extends React.Component<Props> {
 }
 
 export const PlayerErrorBoundary = connect(
-    (state: RootReducerState) => ({error: state.streams.error}),
+    (state: RootReducerState) => ({error: state.stations.error}),
 )(PlayerErrorBoundaryContainer);

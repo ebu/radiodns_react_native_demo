@@ -10,6 +10,7 @@
     "rootDir": "./src",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
 
     /* Strict Type-Checking Options */
+    "forceConsistentCasingInFileNames": true,
     "strict": true,                           /* Enable all strict type-checking options. */
     "noImplicitAny": true,                 /* Raise error on expressions and declarations with an implied 'any' type. */
     "strictNullChecks": true,              /* Enable strict null checks. */

@@ -1,23 +1,22 @@
 import * as React from "react";
 import {AppState, AppStateStatus} from "react-native";
 import MusicControl from "react-native-music-control";
-// @ts-ignore
+// @ts-ignore - createAppContainer does exists in react navigation but typings are not up to date.
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../colors";
 import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
 import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
 import {DEBUG} from "../constants";
 import {store} from "../reducers/root-reducer";
 import {clearCache} from "../services/SPICache";
-import {COLOR_PRIMARY, COLOR_SECONDARY} from "../styles";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
-import {StreamsView} from "./StreamsView";
+import {StationsView} from "./StationsView";
 
 /**
- * Main component for the application. Hosts axios http client and if the root for the redux
- * provider for streams.
+ * Main component for the application.
  */
 export default class App extends React.Component {
 
@@ -26,8 +25,8 @@ export default class App extends React.Component {
             Home: {
                 screen: HomeScreen,
             },
-            StreamsView: {
-                screen: StreamsView,
+            StationsView: {
+                screen: StationsView,
             },
             PlayerView: {
                 screen: PlayerView,
@@ -35,7 +34,7 @@ export default class App extends React.Component {
         },
         {
             initialRouteName: "Home",
-            // @ts-ignore
+            // @ts-ignore - typings are not up to date.
             defaultNavigationOptions: {
                 headerStyle: {
                     backgroundColor: COLOR_SECONDARY,

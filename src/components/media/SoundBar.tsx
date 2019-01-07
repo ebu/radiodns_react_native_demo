@@ -3,9 +3,9 @@ import {View} from "react-native";
 import {Icon, Slider} from "react-native-elements";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
+import {COLOR_SECONDARY} from "../../colors";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {setVolumeStream} from "../../reducers/streams";
-import {COLOR_SECONDARY} from "../../styles";
+import {setVolume} from "../../reducers/stations";
 
 interface Props {
     // injected props
@@ -16,7 +16,6 @@ interface Props {
 /**
  * Sounds control for the player. Read to use as it is.
  * @param props: The component props.
- * @constructor
  */
 const SoundBarContainer: React.FC<Props> = (props) => (
     <View
@@ -43,9 +42,9 @@ const SoundBarContainer: React.FC<Props> = (props) => (
 
 export const SoundBar = connect(
     (state: RootReducerState) => ({
-        volume: state.streams.volume,
+        volume: state.stations.volume,
     }),
     (dispatch: Dispatch) => ({
-        setVolume: (volume: number) => dispatch(setVolumeStream(volume)),
+        setVolume: (volume: number) => dispatch(setVolume(volume)),
     }),
 )(SoundBarContainer);

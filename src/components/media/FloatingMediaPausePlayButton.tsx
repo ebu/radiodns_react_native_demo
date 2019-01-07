@@ -3,44 +3,43 @@ import {ActivityIndicator} from "react-native";
 import ActionButton from "react-native-action-button";
 import {Icon} from "react-native-elements";
 import {connect} from "react-redux";
-import {Stream} from "../../models/Stream";
+import {COLOR_DANGER, COLOR_PRIMARY} from "../../colors";
+import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {setNextStream, setPreviousStream, setStreamPausedState} from "../../reducers/streams";
-import {COLOR_DANGER, COLOR_PRIMARY} from "../../styles";
-import {injectedFunctionInvoker} from "../../utilities";
+import {setNextStation, setPausedState, setPreviousStation} from "../../reducers/stations";
 
 interface Props {
     // injected
-    activeStream?: Stream | null;
+    activeStation?: Station | null;
     loading?: boolean;
     paused?: boolean;
     error?: boolean;
-    onNextPressed?: () => void;
-    onPreviousPressed?: () => void;
-    setStreamPausedState?: (paused: boolean) => void;
+    setPausedState?: (paused: boolean) => void;
+    setNextStation?: () => void;
+    setPreviousStation?: () => void;
 }
 
 class FloatingMediaControlsButtonContainer extends React.Component<Props> {
 
     public render() {
-        if (!this.props.activeStream) {
+        if (!this.props.activeStation) {
             return null;
         }
         return (
             <ActionButton buttonColor="rgba(231,76,60,1)" autoInactive={false}>
-                <ActionButton.Item buttonColor="#3498db" onPress={this.onPreviousPressed}>
+                <ActionButton.Item buttonColor="#3498db" onPress={this.props.setPreviousStation}>
                     <Icon name="skip-next" size={22} color={COLOR_PRIMARY}/>
                 </ActionButton.Item>
-                <ActionButton.Item buttonColor="#3498db" onPress={this.onNextPressed}>
+                <ActionButton.Item buttonColor="#3498db" onPress={this.props.setNextStation}>
                     <Icon name="skip-previous" size={22} color={COLOR_PRIMARY}/>
                 </ActionButton.Item>
                 <ActionButton.Item
                     buttonColor={this.props.error ? COLOR_DANGER : this.props.paused ? "#1abc9c" : "#3498db"}
                     onPress={this.onPlayPausePressed}
-                    title={this.props.activeStream
+                    title={this.props.activeStation
                         ? this.props.error
-                            ? "Failed to read the stream!"
-                            : `Listening to ${this.props.activeStream.mediumName}`
+                            ? "Failed to read the station's stream!"
+                            : `Listening to ${this.props.activeStation.mediumName}`
                         : ""}
                 >
                     {!this.props.loading && !this.props.error &&
@@ -56,23 +55,21 @@ class FloatingMediaControlsButtonContainer extends React.Component<Props> {
 
     private onPlayPausePressed = () => {
         if (!this.props.loading) {
-            injectedFunctionInvoker(this.props.setStreamPausedState, !this.props.paused);
+            this.props.setPausedState!(!this.props.paused);
         }
-    };
-    private onNextPressed = () => injectedFunctionInvoker(this.props.onNextPressed);
-    private onPreviousPressed = () => injectedFunctionInvoker(this.props.onPreviousPressed);
+    }
 }
 
 export const FloatingMediaControlsButton = connect(
     (state: RootReducerState) => ({
-        activeStream: state.streams.activeStream,
-        paused: state.streams.paused,
-        loading: state.streams.loading,
-        error: state.streams.error,
+        activeStation: state.stations.activeStation,
+        paused: state.stations.paused,
+        loading: state.stations.loading,
+        error: state.stations.error,
     }),
     ((dispatch) => ({
-        setStreamPausedState: (paused: boolean) => dispatch(setStreamPausedState(paused)),
-        onNextPressed: () => dispatch(setNextStream()),
-        onPreviousPressed: () => dispatch(setPreviousStream()),
+        setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
+        setNextStation: () => dispatch(setNextStation()),
+        setPreviousStation: () => dispatch(setPreviousStation()),
     })),
 )(FloatingMediaControlsButtonContainer);
