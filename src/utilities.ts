@@ -1,13 +1,17 @@
 import MusicControl from "react-native-music-control";
-import {Logo, Stream} from "./models/Stream";
+import {Logo, Station} from "./models/Station";
 
 /**
- * Returns the media to be displayed for the stream. This is really an example implementation and one should come with
+ * Returns the media to be displayed for the station (the bigger one). This is really an example implementation and one should come with
  * something smarter.
  * @param medias: The medias from where to choose from.
  */
-export const getMedia = (medias: Logo[] | undefined) =>
-    (medias || []).reduce((best, current) => current.width > best.width ? current : best).url;
+export const getMedia = (medias: Logo[] | undefined) => {
+    if (medias) {
+        return medias.reduce((best, current) => current.width > best.width ? current : best).url;
+    }
+    return "";
+};
 
 /**
  * Verifies if the provided string verifies web http/https/www schemes. Returns true if so, false otherwise.
@@ -17,15 +21,14 @@ export const isWebScheme: (url: string) => boolean = (url) =>
     /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(url);
 
 /**
- * Displays a local notification with the name of the played stream.
- * @param streamName: The name of the stream.
+ * Displays a local notification with the name of the played station.
+ * @param station: The name of the station.
  */
-// @ts-ignore
-export const displayAudioPlayerNotifControl = (stream: Stream) => {
+export const displayAudioPlayerNotifControl = (station: Station | null) => {
     MusicControl.setNowPlaying({
-        title: stream.mediumName,
-        artwork: getMedia(stream.streamLogos), // URL or RN's image require()
-        description: "", // Android Only
+        title: station ? station.mediumName : "",
+        artwork: getMedia(station ? station.stationLogos : []),
+        description: "",
     });
     MusicControl.updatePlayback({
         state: MusicControl.STATE_PLAYING,
@@ -33,9 +36,11 @@ export const displayAudioPlayerNotifControl = (stream: Stream) => {
 };
 
 /**
+ * No operation function.
+ */
+export const noop = () => {};
+
+/**
  * [ANDROID ONLY] Cancels the local notification (dismiss it).
  */
 export const cancelAudioPlayerNotifControl = () => MusicControl.resetNowPlaying();
-
-export const injectedFunctionInvoker: (fn?: (...args: any[]) => any, ...args: any[]) => any = (fn, args) => fn ? fn(args) : {};
-export const injectedPropReader: <T>(arg: T | undefined | null) => T = (arg) => arg ? arg : {} as any;

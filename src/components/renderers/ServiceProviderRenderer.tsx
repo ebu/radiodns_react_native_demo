@@ -2,11 +2,11 @@ import * as React from "react";
 import {ActivityIndicator, Image, Text, TouchableOpacity} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
-import {Stream} from "../../models/Stream";
-import {loadStreams, loadStreamsFailed, streamsLoading} from "../../reducers/streams";
-import {getFromSPICache, SPICacheContainer} from "../../services/SPICache";
-import {COLOR_SECONDARY} from "../../styles";
-import {getMedia, injectedFunctionInvoker} from "../../utilities";
+import {COLOR_SECONDARY} from "../../colors";
+import {Station} from "../../models/Station";
+import {loadStations, loadStationsFailed, stationsLoading} from "../../reducers/stations";
+import {getSPI, SPICacheContainer} from "../../services/SPICache";
+import {getMedia} from "../../utilities";
 
 interface Props {
     serviceProviderKey: string;
@@ -15,9 +15,9 @@ interface Props {
     onInvalidData: (key: string) => void;
 
     // injected
-    streamsLoading?: () => void;
-    loadStreams?: (streams: Stream[]) => void;
-    loadStreamsFailed?: () => void;
+    stationsLoading?: () => void;
+    loadStations?: (stations: Station[]) => void;
+    loadStationsFailed?: () => void;
 }
 
 interface State {
@@ -26,9 +26,8 @@ interface State {
 }
 
 /**
- * Renders the stream logo and its medium name. Wrapped in a Touchable opacity for interactivity.
+ * Renders the station logo and its medium name. Wrapped in a Touchable opacity for interactivity.
  * @param props: The component props.
- * @constructor
  */
 class ServiceProviderRendererContainer extends React.Component<Props, State> {
 
@@ -39,8 +38,8 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
 
     public async componentDidMount() {
         try {
-            const cacheResponse = await getFromSPICache(this.props.serviceProviderKey);
-            if (!cacheResponse.streams || cacheResponse.streams.length === 0) {
+            const cacheResponse = await getSPI(this.props.serviceProviderKey);
+            if (!cacheResponse.stations || cacheResponse.stations.length === 0) {
                 this.props.onInvalidData(this.props.serviceProviderKey);
                 return;
             }
@@ -77,21 +76,21 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
     }
 
     private onPress = () => {
-        injectedFunctionInvoker(this.props.streamsLoading);
-        if (this.state.loading || !this.state.cacheResponse || !this.state.cacheResponse.streams) {
-            injectedFunctionInvoker(this.props.loadStreamsFailed);
+        this.props.stationsLoading!();
+        if (this.state.loading || !this.state.cacheResponse || !this.state.cacheResponse.stations) {
+            this.props.loadStationsFailed!();
             return;
         }
-        injectedFunctionInvoker(this.props.loadStreams, this.state.cacheResponse.streams);
-        this.props.navigationProp.navigation.navigate("StreamsView");
+        this.props.loadStations!(this.state.cacheResponse.stations);
+        this.props.navigationProp.navigation.navigate("StationsView");
     }
 }
 
 export const ServiceProviderRenderer = connect(
     () => ({}),
     ((dispatch) => ({
-        streamsLoading: () => dispatch(streamsLoading()),
-        loadStreams: (streams: Stream[]) => dispatch(loadStreams(streams)),
-        loadStreamsFailed: () => dispatch(loadStreamsFailed()),
+        stationsLoading: () => dispatch(stationsLoading()),
+        loadStations: (stations: Station[]) => dispatch(loadStations(stations)),
+        loadStationsFailed: () => dispatch(loadStationsFailed()),
     })),
 )(ServiceProviderRendererContainer);

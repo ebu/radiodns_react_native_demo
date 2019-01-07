@@ -3,30 +3,26 @@ import MusicControl from "react-native-music-control";
 import {Command} from "react-native-music-control/lib/types";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Stream} from "../../models/Stream";
+import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {
-    setNextStream,
-    setPreviousStream,
-    setStreamLoadingState,
-    setStreamPausedState,
-    setVolumeStream,
-} from "../../reducers/streams";
-import {injectedFunctionInvoker} from "../../utilities";
+import {setNextStation, setPausedState, setPreviousStation, setVolume} from "../../reducers/stations";
 
 interface Props {
     // injected props
-    currentSteam?: Stream | null;
+    currentSteam?: Station | null;
     paused?: boolean;
     loading?: boolean;
     volume?: number;
-    setStreamPausedState?: (paused: boolean) => void;
-    setStreamLoadingState?: (loading: boolean) => void;
-    onNextPressed?: () => void;
-    onPreviousPressed?: () => void;
+    setPausedState?: (paused: boolean) => void;
+    setLoadingState?: (loading: boolean) => void;
+    setNextStation?: () => void;
+    setPreviousStation?: () => void;
     setVolume?: (volume: number) => void;
 }
 
+/**
+ * Control notification listener. Will listen to commands made in the control notification an will dispatch redux actions accordingly.
+ */
 class BackgroundControllerContainer extends React.Component<Props> {
 
     public componentDidMount() {
@@ -37,27 +33,17 @@ class BackgroundControllerContainer extends React.Component<Props> {
         MusicControl.enableControl("volume", true);
         MusicControl.enableControl("closeNotification", true, {when: "always"});
 
-        MusicControl.on(Command.play, () => {
-            injectedFunctionInvoker(this.props.setStreamPausedState, false);
-        });
+        MusicControl.on(Command.play, () => this.props.setPausedState!(false));
 
-        MusicControl.on(Command.pause, () => {
-            injectedFunctionInvoker(this.props.setStreamPausedState, true);
-        });
+        MusicControl.on(Command.pause, () => this.props.setPausedState!(true));
 
-        MusicControl.on(Command.nextTrack, () => {
-            injectedFunctionInvoker(this.props.onNextPressed);
-        });
+        MusicControl.on(Command.nextTrack, this.props.setNextStation!);
 
-        MusicControl.on(Command.previousTrack, () => {
-            injectedFunctionInvoker(this.props.onPreviousPressed);
-        });
+        MusicControl.on(Command.previousTrack, this.props.setPreviousStation!);
 
-        MusicControl.on(Command.volume, (volume: number) => injectedFunctionInvoker(this.props.setVolume, volume));
+        MusicControl.on(Command.volume, (volume: number) => this.props.setVolume!(volume));
 
-        MusicControl.on(Command.closeNotification, () => {
-            injectedFunctionInvoker(this.props.setStreamPausedState, true);
-        })
+        MusicControl.on(Command.closeNotification, () => this.props.setPausedState!(true));
     }
 
     public render() {
@@ -67,16 +53,15 @@ class BackgroundControllerContainer extends React.Component<Props> {
 
 export const BackgroundController = connect(
     (state: RootReducerState) => ({
-        currentSteam: state.streams.activeStream,
-        paused: state.streams.paused,
-        loading: state.streams.loading,
-        volume: state.streams.volume,
+        currentSteam: state.stations.activeStation,
+        paused: state.stations.paused,
+        loading: state.stations.loading,
+        volume: state.stations.volume,
     }),
     ((dispatch: Dispatch) => ({
-        setStreamPausedState: (paused: boolean) => dispatch(setStreamPausedState(paused)),
-        setStreamLoadingState: (loading: boolean) => dispatch(setStreamLoadingState(loading)),
-        onPreviousPressed: () => dispatch(setPreviousStream()),
-        onNextPressed: () => dispatch(setNextStream()),
-        setVolume: (volume: number) => dispatch(setVolumeStream(volume)),
+        setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
+        setNextStation: () => dispatch(setNextStation()),
+        setPreviousStation: () => dispatch(setPreviousStation()),
+        setVolume: (volume: number) => dispatch(setVolume(volume)),
     })),
 )(BackgroundControllerContainer);

@@ -2,21 +2,21 @@ import {DeclarationAttributes} from "xml-js";
 
 export type ArrayOrOne<T> = T[] | T;
 
-export interface LinkAttributes {
+export interface RawLinkAttributes {
     url?: string;
     mimeValue?: string;
     "xml:lang"?: string;
     uri?: string;
 }
 
-export interface LocalizedText {
+export interface RawLocalizedText {
     _text: string;
     _attributes: {
         "xml:lang": string;
     },
 }
 
-export interface MediaDescription {
+export interface RawMediaDescription {
     multimedia: {
         _attributes: {
             height: string;
@@ -27,7 +27,7 @@ export interface MediaDescription {
     },
 }
 
-export interface ParsedServiceWithBearer extends ParsedService {
+export interface RawServiceWithBearer extends RawService {
     bearer: ArrayOrOne<{
         _attributes: {
             id: string;
@@ -38,7 +38,7 @@ export interface ParsedServiceWithBearer extends ParsedService {
     }>,
 }
 
-export interface ParsedService {
+export interface RawService {
     bearer?: ArrayOrOne<{
         _attributes: {
             id?: string;
@@ -54,7 +54,7 @@ export interface ParsedService {
         _text: string;
     }>,
     link?: ArrayOrOne<{
-        _attributes: LinkAttributes,
+        _attributes: RawLinkAttributes,
     }>,
     shortName?: {
         _text: string;
@@ -65,8 +65,8 @@ export interface ParsedService {
     longName?: {
         _text: string;
     },
-    shortDescription?: LocalizedText,
-    mediaDescription?: MediaDescription[],
+    shortDescription?: RawLocalizedText,
+    mediaDescription?: RawMediaDescription[],
     radiodns: {
         _attributes: {
             fqdn: string;
@@ -75,30 +75,30 @@ export interface ParsedService {
     }
 }
 
-export interface ParsedServiceProvider {
+export interface RawServiceProvider {
     geolocation: {
         country?: {
             _text: string;
         },
     },
     link?: ArrayOrOne<{
-        _attributes: LinkAttributes,
+        _attributes: RawLinkAttributes,
     }>,
-    shortName?: LocalizedText,
-    mediumName?: LocalizedText,
-    longName?: LocalizedText,
-    shortDescription?: LocalizedText,
-    mediaDescription?: MediaDescription[],
+    shortName?: RawLocalizedText,
+    mediumName?: RawLocalizedText,
+    longName?: RawLocalizedText,
+    shortDescription?: RawLocalizedText,
+    mediaDescription?: RawMediaDescription[],
 }
 
-export interface ParsedSPIFile {
+export interface RawSPIFile {
     _declaration: {
         _attributes: DeclarationAttributes,
     },
     serviceInformation: {
         services: {
-            service?: ArrayOrOne<ParsedService>,
-            serviceProvider?: ParsedServiceProvider,
+            service?: ArrayOrOne<RawService>,
+            serviceProvider?: RawServiceProvider,
         },
     },
 }

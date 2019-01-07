@@ -9,7 +9,7 @@
     "build:watch": "tsc --watch",
     "start:android": "npm run build && run-p build:watch run:android",
     "start:ios": "npm run build && run-p build:watch run:ios",
-    "test": "jest"
+    "lint": "tslint 'src/**/*'"
   },
   "dependencies": {
     "axios": "0.18.0",
@@ -19,7 +19,7 @@
     "react-native-action-button": "2.8.5",
     "react-native-elements": "0.19.1",
     "react-native-gesture-handler": "1.0.10",
-    "react-native-music-control": "^0.9.3",
+    "react-native-music-control": "0.9.3",
     "react-native-photo-grid": "0.0.2",
     "react-native-swipe-gestures": "1.0.3",
     "react-native-vector-icons": "6.1.0",

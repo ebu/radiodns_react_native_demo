@@ -1,16 +1,18 @@
 import * as React from "react";
 import {SearchBar} from "react-native-elements";
 import {connect} from "react-redux";
-import {setStreamsVisibility} from "../../reducers/streams";
-import {COLOR_SECONDARY} from "../../styles";
-import {injectedFunctionInvoker} from "../../utilities";
+import {COLOR_SECONDARY} from "../../colors";
+import {setStationsVisibility} from "../../reducers/stations";
 
 interface Props {
     // injected
-    setStreamsVisibility?: (searchStream: string) => void;
+    setStationsVisibility?: (searchedStation: string) => void;
 }
 
-class MediaSearchBarContainer extends React.Component<Props> {
+/**
+ * Station search bar. Component read to use as it is. Sets the visibility of stations in the station reducer.
+ */
+class StationSearchBarContainer extends React.Component<Props> {
     public render() {
         return (
             <SearchBar
@@ -27,13 +29,13 @@ class MediaSearchBarContainer extends React.Component<Props> {
         );
     }
 
-    private onChangeText = (val: string) => injectedFunctionInvoker(this.props.setStreamsVisibility, val);
-    private onClearText = () => injectedFunctionInvoker(this.props.setStreamsVisibility, "");
+    private onChangeText = (val: string) => this.props.setStationsVisibility!(val);
+    private onClearText = () => this.props.setStationsVisibility!("");
 }
 
 export const MediaSearchBar = connect(
     () => ({}),
     ((dispatch) => ({
-        setStreamsVisibility: (searchedStream: string) => dispatch(setStreamsVisibility(searchedStream)),
+        setStationsVisibility: (searchedStation: string) => dispatch(setStationsVisibility(searchedStation)),
     })),
-)(MediaSearchBarContainer);
+)(StationSearchBarContainer);

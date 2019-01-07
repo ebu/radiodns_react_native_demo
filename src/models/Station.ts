@@ -1,7 +1,7 @@
-import {LinkAttributes} from "./SPIModel";
+import {RawLinkAttributes} from "./RawSPI";
 
 /**
- * Describes a stream logo.
+ * Describes a station logo.
  */
 export interface Logo {
     height: number;
@@ -11,9 +11,9 @@ export interface Logo {
 }
 
 /**
- * Describes a radio stream.
+ * Describes a radio station.
  */
-export interface Stream {
+export interface Station {
     // Selected channel from metadata to listen to the ip station.
     bearer: {
         id: string | null;
@@ -27,7 +27,7 @@ export interface Stream {
         text: string;
     }>,
     // Useful links related to the station.
-    link: LinkAttributes[],
+    link: RawLinkAttributes[],
     // max 8 chars long
     shortName: string,
     // max 16 chars long
@@ -39,7 +39,7 @@ export interface Stream {
         lang: string,
     },
     // Station's logos
-    streamLogos: Logo[],
+    stationLogos: Logo[],
     // RadioDns informations.
     radiodns: {
         fqdn: string;

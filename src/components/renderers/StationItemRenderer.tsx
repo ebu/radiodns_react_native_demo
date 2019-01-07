@@ -1,22 +1,23 @@
 import * as React from "react";
 import {TouchableOpacity} from "react-native";
 import {Avatar} from "react-native-elements";
-import {Stream} from "../../models/Stream";
+import {Station} from "../../models/Station";
 import {getMedia} from "../../utilities";
 import {MediumText} from "../texts/MediumText";
 
 interface Props {
-    stream: Stream;
+    station: Station;
     // callback for when one touch this component.
     onPress: () => void;
 }
 
 /**
- * Renders the stream logo and its medium name. Wrapped in a Touchable opacity for interactivity.
+ * Renders the station logo and its medium name. Wrapped in a Touchable opacity for interactivity.
  * @param props: The component props.
- * @constructor
  */
-export const StreamItemRenderer: React.FC<Props> = (props) => (
+export const StationItemRenderer: React.FC<Props> = (props) => {
+    console.log("PROPS", props);
+    return (
     <TouchableOpacity
         style={{
             flex: 1,
@@ -29,10 +30,10 @@ export const StreamItemRenderer: React.FC<Props> = (props) => (
         <Avatar
             medium
             rounded
-            source={getMedia(props.stream.streamLogos) === ""
+            source={getMedia(props.station.stationLogos) === ""
                 ? require("../../../ressources/ebu_logo.png")
-                : {uri: getMedia(props.stream.streamLogos)}}
+                : {uri: getMedia(props.station.stationLogos)}}
         />
-        <MediumText style={{marginLeft: 10}}>{props.stream.mediumName}</MediumText>
+        <MediumText style={{marginLeft: 10}}>{props.station.mediumName}</MediumText>
     </TouchableOpacity>
-);
+)};

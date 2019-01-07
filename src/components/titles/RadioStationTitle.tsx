@@ -1,15 +1,18 @@
 import * as React from "react";
 import {Text} from "react-native-elements";
 import {connect} from "react-redux"
-import {Stream} from "../../models/Stream";
+import {COLOR_PRIMARY} from "../../colors";
+import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {COLOR_PRIMARY} from "../../styles";
 
 interface Props {
     // injected props
-    activeStream?: Stream | null;
+    activeStation?: Station | null;
 }
 
+/**
+ * Component for the stack navigator. Adds a title to the app's activities.
+ */
 const RadioStationTitleContainer: React.FC<Props> = (props) => (
     <Text
         style={{
@@ -18,12 +21,12 @@ const RadioStationTitleContainer: React.FC<Props> = (props) => (
             fontSize: 20,
         }}
     >
-        {props.activeStream ? props.activeStream.mediumName : ""}
+        {props.activeStation ? props.activeStation.mediumName : ""}
     </Text>
 );
 
 export const RadioStationTitle = connect(
     (state: RootReducerState) => ({
-        activeStream: state.streams.activeStream,
+        activeStation: state.stations.activeStation,
     }),
 )(RadioStationTitleContainer);

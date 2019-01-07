@@ -2,26 +2,24 @@ import * as React from "react"
 import Video, {LoadError} from "react-native-video";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Stream} from "../../models/Stream";
+import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {setErrorStream, setStreamLoadingState} from "../../reducers/streams";
-import {injectedFunctionInvoker} from "../../utilities";
+import {setError, setLoadingState} from "../../reducers/stations";
 
 interface Props {
     // injected props
-    currentSteam?: Stream | null;
+    currentSteam?: Station | null;
     paused?: boolean;
     loading?: boolean;
     volume?: number;
-    setStreamPausedState?: (paused: boolean) => void;
-    setStreamLoadingState?: (loading: boolean) => void;
-    setErrorStream?: (loading: boolean) => void;
+    setLoadingState?: (loading: boolean) => void;
+    setError?: (loading: boolean) => void;
 }
 
+/**
+ * This components contains and handles the video component and its events.
+ */
 class PlayerContainer extends React.Component<Props> {
-
-    // @ts-ignore
-    private playerRef: Video;
 
     public render() {
         if (!this.props.currentSteam) {
@@ -29,12 +27,11 @@ class PlayerContainer extends React.Component<Props> {
         }
         const uri = this.props.currentSteam.bearer.id;
         if (typeof uri !== "string") {
-            injectedFunctionInvoker(this.props.setErrorStream, true);
+            this.props.setError!(true);
             return null;
         }
         return (
             <Video
-                ref={this.onRef}
                 allowsExternalPlayback
                 source={{uri}}
                 onBuffer={this.onBuffering}
@@ -50,13 +47,8 @@ class PlayerContainer extends React.Component<Props> {
         );
     }
 
-    // COMPONENT LIFECYCLE AND OTHER METHODS
-    private onRef = (ref: Video) => this.playerRef = ref;
-
     // MEDIA HANDLING
-    private onMediaReady = () => {
-        injectedFunctionInvoker(this.props.setStreamLoadingState, false);
-    };
+    private onMediaReady = () => this.props.setLoadingState!(false);
 
     private onProgress = () => {
         if (this.props.loading) {
@@ -64,28 +56,26 @@ class PlayerContainer extends React.Component<Props> {
         }
     };
 
-    private onLoadStart = () => injectedFunctionInvoker(this.props.setStreamLoadingState, true);
+    private onLoadStart = () => this.props.setLoadingState!(true);
 
-    private onBuffering = () => injectedFunctionInvoker(this.props.setStreamLoadingState, true);
+    private onBuffering = () => this.props.setLoadingState!(true);
 
     // PLAYER IMPLEMENTATION METHODS
-
     private onError = (e: LoadError) => {
-        // TODO display error on both notif and screen.
-        injectedFunctionInvoker(this.props.setErrorStream, true);
+        this.props.setError!(true);
         console.error(e.error)
     };
 }
 
 export const Player = connect(
     (state: RootReducerState) => ({
-        currentSteam: state.streams.activeStream,
-        paused: state.streams.paused,
-        loading: state.streams.loading,
-        volume: state.streams.volume,
+        currentSteam: state.stations.activeStation,
+        paused: state.stations.paused,
+        loading: state.stations.loading,
+        volume: state.stations.volume,
     }),
     ((dispatch: Dispatch) => ({
-        setStreamLoadingState: (loading: boolean) => dispatch(setStreamLoadingState(loading)),
-        setErrorStream: (error: boolean) => dispatch(setErrorStream(error)),
+        setLoadingState: (loading: boolean) => dispatch(setLoadingState(loading)),
+        setError: (error: boolean) => dispatch(setError(error)),
     })),
 )(PlayerContainer);

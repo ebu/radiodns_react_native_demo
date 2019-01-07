@@ -1,15 +1,13 @@
 import * as React from "react"
 import {ActivityIndicator, View} from "react-native";
 import {connect} from "react-redux";
-import {Stream} from "../../models/Stream";
+import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../colors";
+import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
-import {setStreamPausedState} from "../../reducers/streams";
-import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../styles";
+import {setPausedState} from "../../reducers/stations";
 import {
     cancelAudioPlayerNotifControl,
     displayAudioPlayerNotifControl,
-    injectedFunctionInvoker,
-    injectedPropReader,
 } from "../../utilities";
 import {IconButton} from "../buttons/IconButton";
 import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
@@ -17,17 +15,14 @@ import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
 
 interface Props {
     // injected props
-    currentSteam?: Stream | null;
+    currentSteam?: Station | null;
     paused?: boolean;
     loading?: boolean;
-    setStreamPausedState?: (paused: boolean) => void;
+    setPausedState?: (paused: boolean) => void;
 }
 
 /**
  * Control bar for the player with a previous, pause/play and next button. Ready to use as it is.
- * +------------------+
- * |  <     ||     >  |
- * +------------------+
  */
 class MediaControlsContainer extends React.Component<Props> {
 
@@ -63,19 +58,19 @@ class MediaControlsContainer extends React.Component<Props> {
         paused
             ? cancelAudioPlayerNotifControl()
             : this.updateControlNotif();
-        injectedFunctionInvoker(this.props.setStreamPausedState, paused);
+        this.props.setPausedState!(paused);
     };
 
-    private updateControlNotif = () => displayAudioPlayerNotifControl(injectedPropReader(this.props.currentSteam));
+    private updateControlNotif = () => displayAudioPlayerNotifControl(this.props.currentSteam!);
 }
 
 export const MediaControls = connect(
     (state: RootReducerState) => ({
-        currentSteam: state.streams.activeStream,
-        paused: state.streams.paused,
-        loading: state.streams.loading,
+        currentSteam: state.stations.activeStation,
+        paused: state.stations.paused,
+        loading: state.stations.loading,
     }),
     ((dispatch) => ({
-        setStreamPausedState: (paused: boolean) => dispatch(setStreamPausedState(paused)),
+        setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
     })),
 )(MediaControlsContainer);
