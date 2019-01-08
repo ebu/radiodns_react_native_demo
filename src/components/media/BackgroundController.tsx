@@ -37,9 +37,9 @@ class BackgroundControllerContainer extends React.Component<Props> {
 
         MusicControl.on(Command.pause, () => this.props.setPausedState!(true));
 
-        MusicControl.on(Command.nextTrack, this.props.setNextStation!);
+        MusicControl.on(Command.nextTrack, this.props.setPreviousStation!);
 
-        MusicControl.on(Command.previousTrack, this.props.setPreviousStation!);
+        MusicControl.on(Command.previousTrack, this.props.setNextStation!);
 
         MusicControl.on(Command.volume, (volume: number) => this.props.setVolume!(volume));
 

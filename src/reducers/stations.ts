@@ -96,7 +96,12 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
         case FETCH_SERVICES_FAILURE:
             return {...state, loadingStationsState: "ERROR"};
         case SET_ACTIVE:
-            return setActiveStationHelper({...state, activeStation: action.activeStation, error: false}, getIndexFromActiveStation);
+            return setActiveStationHelper({
+                ...state,
+                activeStation: action.activeStation,
+                error: false,
+                paused: false,
+            }, getIndexFromActiveStation);
         case SET_LOADING:
             if (!state.error) {
                 MusicControl.updatePlayback({
@@ -116,9 +121,14 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
             return setActiveStationHelper({
                 ...state,
                 error: false,
+                paused: false,
             }, (s) => s.index - 1 >= 0 ? s.index - 1 : s.stations.length - 1);
         case SET_ACTIVE_PREVIOUS:
-            return setActiveStationHelper({...state, error: false}, (s) => s.index + 1 < s.stations.length ? s.index + 1 : 0);
+            return setActiveStationHelper({
+                ...state,
+                error: false,
+                paused: false,
+            }, (s) => s.index + 1 < s.stations.length ? s.index + 1 : 0);
         case SET_VOLUME:
             return {...state, volume: action.volume};
         case SET_ERROR:
