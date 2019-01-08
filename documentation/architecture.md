@@ -86,7 +86,4 @@ For more information about Redux's Flux inspiration [go here](https://redux.js.o
 
 The demonstrator uses redux to control the state of the player. This includes the list of the stations available for the
 selected service provider, the currently listened to station, if the stream is paused, loading or in an error state and 
-at what volume the media should play. Then every react component related to the stream or the player is updated and dispatch
-action from and to this reducer.
-
-Whenever 
+at what volume the media should play. Then every react component related to the stream or the player is updated and dispatch an action from and to this reducer.
