@@ -1,4 +1,4 @@
-package com.radiodns_react_native_techincal_demo;
+package com.radiodns;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
      */
     @Override
     protected String getMainComponentName() {
-        return "radiodns_react_native_techincal_demo";
+        return "RadioDns";
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.radiodns_react_native_techincal_demo;
+package com.radiodns;
 
 import android.app.Application;
 

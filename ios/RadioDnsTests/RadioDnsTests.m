@@ -14,11 +14,11 @@
 #define TIMEOUT_SECONDS 600
 #define TEXT_TO_LOOK_FOR @"Welcome to React Native!"
 
-@interface radiodns_react_native_techincal_demoTests : XCTestCase
+@interface RadioDnsTests : XCTestCase
 
 @end
 
-@implementation radiodns_react_native_techincal_demoTests
+@implementation RadioDnsTests
 
 - (BOOL)findSubviewInView:(UIView *)view matching:(BOOL(^)(UIView *view))test
 {
