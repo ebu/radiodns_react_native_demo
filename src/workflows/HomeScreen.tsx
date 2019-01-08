@@ -1,23 +1,55 @@
 import * as React from "react";
-import {NavigationScreenProps} from "react-navigation";
+import {Button} from "react-native-elements";
+import {NavigationScreenDetails, NavigationScreenProps} from "react-navigation";
+import {COLOR_SECONDARY_DARK} from "../colors";
 import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPausePlayButton";
 import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
 import {PhotoGrid} from "../components/views/PhotoGrid";
 import {SERVICE_PROVIDERS} from "../constants";
+import {clearCache} from "../services/SPICache";
+
+interface State {
+    serviceProviderUrls: string[];
+    reloading: boolean;
+}
 
 /**
  * Home screen with the list of service providers.
  */
-export class HomeScreen extends React.Component<NavigationScreenProps, { serviceProviderUrls: string[] }> {
-    public static navigationOptions = {
+export class HomeScreen extends React.Component<NavigationScreenProps, State> {
+
+    public static navigationOptions = (navigationScreenDetails: NavigationScreenDetails<{}>) => ({
         title: "Home",
-    };
+        headerRight: (
+            <Button
+                title={"clear cache"}
+                icon={{name: "cached"}}
+                onPress={navigationScreenDetails.navigation.getParam("handleOnClearCachePress")}
+                backgroundColor={COLOR_SECONDARY_DARK}
+                buttonStyle={{borderRadius: 50, paddingTop: 5, paddingBottom: 5, paddingRight: -5}}
+            />
+        ),
+    });
 
     public readonly state = {
         serviceProviderUrls: SERVICE_PROVIDERS,
+        reloading: false,
     };
 
+    public componentDidMount() {
+        this.props.navigation.setParams({ handleOnClearCachePress: this.handleOnClearCachePress });
+    }
+
+    public componentDidUpdate() {
+        if (this.state.reloading) {
+            this.setState({reloading: false});
+        }
+    }
+
     public render() {
+        if (this.state.reloading) {
+            return null;
+        }
         return (
             <>
                 <PhotoGrid
@@ -53,5 +85,10 @@ export class HomeScreen extends React.Component<NavigationScreenProps, { service
         this.setState({
             serviceProviderUrls: this.state.serviceProviderUrls.filter((item) => item !== key),
         });
-    }
+    };
+
+    private handleOnClearCachePress = async () => {
+        await clearCache();
+        this.setState({reloading: true})
+    };
 }

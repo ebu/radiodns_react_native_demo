@@ -4,10 +4,6 @@ export const SPI_3_1 = "/radiodns/spi/3.1/SI.xml";
 // Max age to cache an SPI file. In milliseconds.
 export const CACHE_SPI_MAX_AGE = 21600000;
 
-// Debug is by default enable in development mode.
-// FIXME additional way to disable this via idk env maybe?
-export const DEBUG = false; // __DEV__;
-
 // List of service providers.
 export const SERVICE_PROVIDERS = [
     "https://atorf.spi.radio.ebu.io",

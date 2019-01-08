@@ -8,9 +8,7 @@ import {COLOR_PRIMARY, COLOR_SECONDARY} from "../colors";
 import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
 import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
-import {DEBUG} from "../constants";
 import {store} from "../reducers/root-reducer";
-import {clearCache} from "../services/SPICache";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
 import {StationsView} from "./StationsView";
@@ -47,11 +45,7 @@ export default class App extends React.Component {
         },
     ));
 
-    public async componentWillMount() {
-        if (DEBUG) {
-            await clearCache();
-        }
-
+    public componentWillMount() {
         // Subscribe to the app state changes (forground, background, inactive).
         AppState.addEventListener("change", this.handleAppStateChange);
     }

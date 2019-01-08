@@ -15,9 +15,7 @@ interface Props {
  * Renders the station logo and its medium name. Wrapped in a Touchable opacity for interactivity.
  * @param props: The component props.
  */
-export const StationItemRenderer: React.FC<Props> = (props) => {
-    console.log("PROPS", props);
-    return (
+export const StationItemRenderer: React.FC<Props> = (props) => (
     <TouchableOpacity
         style={{
             flex: 1,
@@ -36,4 +34,4 @@ export const StationItemRenderer: React.FC<Props> = (props) => {
         />
         <MediumText style={{marginLeft: 10}}>{props.station.mediumName}</MediumText>
     </TouchableOpacity>
-)};
+);
