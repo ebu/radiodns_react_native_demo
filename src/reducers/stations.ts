@@ -9,7 +9,11 @@ import {displayAudioPlayerNotifControl} from "../utilities";
  */
 
 // Types
-interface StationsLoadAction extends Action<typeof FETCH_SERVICES_SUCCESS> {
+interface StationSetPlaylistAction extends Action<typeof SET_STATION_PLAYLIST> {
+    stations: Station[];
+}
+
+interface StationSetCurrentlyVisibleAction extends Action<typeof SET_STATIONS_CURRENTLY_VISIBLE> {
     stations: Station[];
 }
 
@@ -37,9 +41,9 @@ interface StationsSetVisibility extends Action<typeof SET_VISIBILITY> {
     searchedStation: string;
 }
 
-type StationsActions = Action<typeof GET_SERVICES>
-    | StationsLoadAction
-    | Action<typeof FETCH_SERVICES_FAILURE>
+type StationsActions =
+    | StationSetPlaylistAction
+    | StationSetCurrentlyVisibleAction
     | StationsSetActiveAction
     | StationsSetLoading
     | StationsSetPaused
@@ -50,8 +54,8 @@ type StationsActions = Action<typeof GET_SERVICES>
     | StationsSetError;
 
 export interface StationsReducerState {
-    stations: Station[];
-    loadingStationsState: "LOADING" | "ERROR" | "SUCCESS";
+    station_playlist: Station[];
+    stations_currently_visible: Station[];
     activeStation: Station | null;
     loading: boolean;
     paused: boolean;
@@ -62,9 +66,8 @@ export interface StationsReducerState {
 }
 
 // Actions
-const GET_SERVICES = "radiodns_react_native_technical_demo/stations/GET_SERVICES";
-const FETCH_SERVICES_SUCCESS = "radiodns_react_native_technical_demo/stations/FETCH_SERVICES_SUCCESS";
-const FETCH_SERVICES_FAILURE = "radiodns_react_native_technical_demo/stations/FETCH_SERVICES_FAILURE";
+const SET_STATION_PLAYLIST = "radiodns_react_native_technical_demo/stations/SET_STATION_PLAYLIST";
+const SET_STATIONS_CURRENTLY_VISIBLE = "radiodns_react_native_technical_demo/stations/SET_STATIONS_CURRENTLY_VISIBLE";
 const SET_ACTIVE = "radiodns_react_native_technical_demo/stations/SET_ACTIVE";
 const SET_LOADING = "radiodns_react_native_technical_demo/stations/SET_LOADING";
 const SET_PAUSED = "radiodns_react_native_technical_demo/stations/SET_PAUSED";
@@ -76,8 +79,8 @@ const SET_VISIBILITY = "radiodns_react_native_technical_demo/stations/SET_VISIBI
 
 // Reducer
 export const STATIONS_REDUCER_DEFAULT_STATE: StationsReducerState = {
-    stations: [],
-    loadingStationsState: "LOADING",
+    station_playlist: [],
+    stations_currently_visible: [],
     activeStation: null,
     loading: true,
     paused: false,
@@ -89,12 +92,10 @@ export const STATIONS_REDUCER_DEFAULT_STATE: StationsReducerState = {
 
 export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_STATE, action: StationsActions): StationsReducerState {
     switch (action.type) {
-        case GET_SERVICES:
-            return {...state, loadingStationsState: "LOADING"};
-        case FETCH_SERVICES_SUCCESS:
-            return {...state, loadingStationsState: "SUCCESS", stations: Array.from(action.stations), searchedStation: ""};
-        case FETCH_SERVICES_FAILURE:
-            return {...state, loadingStationsState: "ERROR"};
+        case SET_STATION_PLAYLIST:
+            return {...state, station_playlist: Array.from(action.stations)};
+        case SET_STATIONS_CURRENTLY_VISIBLE:
+            return {...state, stations_currently_visible: Array.from(action.stations), searchedStation: ""};
         case SET_ACTIVE:
             return setActiveStationHelper({
                 ...state,
@@ -122,13 +123,13 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
                 ...state,
                 error: false,
                 paused: false,
-            }, (s) => s.index - 1 >= 0 ? s.index - 1 : s.stations.length - 1);
+            }, (s) => s.index - 1 >= 0 ? s.index - 1 : s.station_playlist.length - 1);
         case SET_ACTIVE_PREVIOUS:
             return setActiveStationHelper({
                 ...state,
                 error: false,
                 paused: false,
-            }, (s) => s.index + 1 < s.stations.length ? s.index + 1 : 0);
+            }, (s) => s.index + 1 < s.station_playlist.length ? s.index + 1 : 0);
         case SET_VOLUME:
             return {...state, volume: action.volume};
         case SET_ERROR:
@@ -147,17 +148,15 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
 }
 
 // Action creators
-export const stationsLoading: () => Action<typeof GET_SERVICES> = () => ({
-    type: GET_SERVICES,
-});
 
-export const loadStations: (stations: Station[]) => StationsLoadAction = (stations) => ({
-    type: FETCH_SERVICES_SUCCESS,
+export const setStationPlaylist: (stations: Station[]) => StationSetPlaylistAction = (stations) => ({
+    type: SET_STATION_PLAYLIST,
     stations,
 });
 
-export const loadStationsFailed: () => Action<typeof FETCH_SERVICES_FAILURE> = () => ({
-    type: FETCH_SERVICES_FAILURE,
+export const setStationsCurrentlyVisible: (stations: Station[]) => StationSetCurrentlyVisibleAction = (stations) => ({
+    type: SET_STATIONS_CURRENTLY_VISIBLE,
+    stations,
 });
 
 export const setActiveStation: (activeStation: Station) => StationsSetActiveAction = (activeStation) => ({
@@ -207,18 +206,18 @@ export const setStationsVisibility: (searchedStation: string) => StationsSetVisi
  * @param updateFn: A function that takes the state of the reducer as parameter and returns a new index.
  */
 const setActiveStationHelper = (state: StationsReducerState, updateFn: (state: StationsReducerState) => number) => {
-    if (state.stations.length === 0) {
+    if (state.station_playlist.length === 0) {
         return state;
     }
 
     const index = updateFn(state);
     if (!state.error) {
-        displayAudioPlayerNotifControl(state.stations[index]);
+        displayAudioPlayerNotifControl(state.station_playlist[index]);
     }
     return {
         ...state,
         index,
-        activeStation: state.stations[index],
+        activeStation: state.station_playlist[index],
     };
 };
 
@@ -228,11 +227,11 @@ const setActiveStationHelper = (state: StationsReducerState, updateFn: (state: S
  * @param state: The state of the reducer.
  */
 const getIndexFromActiveStation = (state: StationsReducerState) => {
-    if (state.stations.length === 0 || state.activeStation === null) {
+    if (state.station_playlist.length === 0 || state.activeStation === null) {
         return -1;
     }
 
-    const currentIndex = state.stations
+    const currentIndex = state.station_playlist
         .map((station) => station.bearer.id)
         .indexOf(state.activeStation.bearer.id);
     return currentIndex === -1 ? 0 : currentIndex;

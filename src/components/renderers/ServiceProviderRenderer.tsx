@@ -4,7 +4,7 @@ import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
-import {loadStations, loadStationsFailed, stationsLoading} from "../../reducers/stations";
+import {setStationsCurrentlyVisible} from "../../reducers/stations";
 import {getSPI, SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
 
@@ -15,9 +15,7 @@ interface Props {
     onInvalidData: (key: string) => void;
 
     // injected
-    stationsLoading?: () => void;
     loadStations?: (stations: Station[]) => void;
-    loadStationsFailed?: () => void;
 }
 
 interface State {
@@ -76,9 +74,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
     }
 
     private onPress = () => {
-        this.props.stationsLoading!();
         if (this.state.loading || !this.state.cacheResponse || !this.state.cacheResponse.stations) {
-            this.props.loadStationsFailed!();
             return;
         }
         this.props.loadStations!(this.state.cacheResponse.stations);
@@ -89,8 +85,6 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
 export const ServiceProviderRenderer = connect(
     () => ({}),
     ((dispatch) => ({
-        stationsLoading: () => dispatch(stationsLoading()),
-        loadStations: (stations: Station[]) => dispatch(loadStations(stations)),
-        loadStationsFailed: () => dispatch(loadStationsFailed()),
+        loadStations: (stations: Station[]) => dispatch(setStationsCurrentlyVisible(stations)),
     })),
 )(ServiceProviderRendererContainer);
