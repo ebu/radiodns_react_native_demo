@@ -4,6 +4,7 @@ import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
+import RadioDNSAuto from "../../native-modules/RadioDNSAuto";
 import {setStationsCurrentlyVisible} from "../../reducers/stations";
 import {getSPI, SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
@@ -40,6 +41,16 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
             if (!cacheResponse.stations || cacheResponse.stations.length === 0) {
                 this.props.onInvalidData(this.props.serviceProviderKey);
                 return;
+            }
+
+            if (cacheResponse.serviceProvider) {
+                RadioDNSAuto.addNode(
+                    "root",
+                    this.props.serviceProviderKey,
+                    cacheResponse.serviceProvider.shortName.text,
+                    getMedia(cacheResponse.serviceProvider.mediaDescription),
+                    null,
+                );
             }
             this.setState({cacheResponse, loading: false})
         } catch (e) {
