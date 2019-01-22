@@ -1,21 +1,23 @@
 package com.radiodns.auto.module;
 
-import android.content.Intent;
+import android.arch.persistence.room.Room;
 import android.support.annotation.NonNull;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
-import com.radiodns.auto.Commands;
+import com.radiodns.auto.auto_database.AutoNode;
+import com.radiodns.auto.auto_database.RadioDNSDatabase;
 
 public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
 
-    private ReactApplicationContext reactContext;
+    private RadioDNSDatabase db;
 
     public RadioDNSAutoModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        this.reactContext = reactContext;
+        db = Room
+                .databaseBuilder(reactContext, RadioDNSDatabase.class, "RadioDNSAuto-db")
+                .build();
     }
 
     @Override
@@ -25,23 +27,23 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
 
     /**
      * Adds a node for the android auto playbac.
-     * @param childOf: Which node this node is the child.
-     * @param key: The key of the node. Should be unique in its subtree.
-     * @param value: The value of the node.
-     *             If the type is "NUMBER" it will be parsed as an int.
-     *             If the type if "IMG" will be decoded from base64.
+     *
+     * @param childOf:   Which node this node is the child.
+     * @param key:       The key of the node. Should be unique in its subtree.
+     * @param value:     The value of the node.
+     *                   If the type is "NUMBER" it will be parsed as an int.
+     *                   If the type if "IMG" will be decoded from base64.
      * @param streamURI: If not null, the node will be considered as a playable node by android auto.
-     *                  Otherwise it will be browsable.
+     *                   Otherwise it will be browsable.
      */
     @ReactMethod
     public void addNode(@NonNull String childOf, @NonNull String key, @NonNull String value, @NonNull String imageURI, String streamURI) {
-        Intent addNodeCMD = new Intent();
-        addNodeCMD.setAction(Commands.ADD_NODE);
-        addNodeCMD.putExtra("CHILD_OF", childOf);
-        addNodeCMD.putExtra("KEY", key);
-        addNodeCMD.putExtra("VALUE", value);
-        addNodeCMD.putExtra("IMG_URI", imageURI);
-        addNodeCMD.putExtra("STREAM_URI", streamURI);
-        this.reactContext.sendBroadcast(addNodeCMD);
+        AutoNode node = new AutoNode();
+        node.key = key;
+        node.childOf = childOf;
+        node.value = value;
+        node.imageURI = imageURI;
+        node.streamURI = streamURI;
+        db.autoNodeDAO().insertAll(node);
     }
 }

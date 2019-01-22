@@ -4,7 +4,7 @@ import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
-import RadioDNSAuto from "../../native-modules/RadioDNSAuto";
+import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
 import {setStationsCurrentlyVisible} from "../../reducers/stations";
 import {getSPI, SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
@@ -42,16 +42,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                 this.props.onInvalidData(this.props.serviceProviderKey);
                 return;
             }
-
-            if (cacheResponse.serviceProvider) {
-                RadioDNSAuto.addNode(
-                    "root",
-                    this.props.serviceProviderKey,
-                    cacheResponse.serviceProvider.shortName.text,
-                    getMedia(cacheResponse.serviceProvider.mediaDescription),
-                    null,
-                );
-            }
+            this.cacheForAndroidAuto(cacheResponse);
             this.setState({cacheResponse, loading: false})
         } catch (e) {
             console.warn(e);
@@ -62,7 +53,11 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
         return (
             <>
                 {this.state.loading &&
-                <ActivityIndicator size="large" style={{width: this.props.itemSize, height: this.props.itemSize}} color={COLOR_SECONDARY}/>}
+                <ActivityIndicator
+                    size="large"
+                    style={{width: this.props.itemSize, height: this.props.itemSize}}
+                    color={COLOR_SECONDARY}
+                />}
                 {!this.state.loading && this.state.cacheResponse && this.state.cacheResponse.serviceProvider && !this.state.cacheResponse.error &&
                 <TouchableOpacity
                     style={{width: this.props.itemSize, height: this.props.itemSize}}
@@ -72,7 +67,8 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                         resizeMode="cover"
                         style={{flex: 1}}
                         defaultSource={require("../../../ressources/ebu_logo.png")}
-                        source={{uri: getMedia(this.state.cacheResponse.serviceProvider.mediaDescription) === ""
+                        source={{
+                            uri: getMedia(this.state.cacheResponse.serviceProvider.mediaDescription) === ""
                                 ? `https://via.placeholder.com/200x200?text=${this.state.cacheResponse.serviceProvider.mediumName.text}`
                                 : getMedia(this.state.cacheResponse.serviceProvider.mediaDescription),
                         }}
@@ -90,6 +86,34 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
         }
         this.props.loadStations!(this.state.cacheResponse.stations);
         this.props.navigationProp.navigation.navigate("StationsView");
+    };
+
+    private cacheForAndroidAuto = async (cacheResponse: SPICacheContainer) => {
+        if (!cacheResponse.serviceProvider || !cacheResponse.stations) {
+            return;
+        }
+        RadioDNSAuto.default.addNode(
+            "root",
+            this.props.serviceProviderKey,
+            cacheResponse.serviceProvider.shortName.text,
+            getMedia(cacheResponse.serviceProvider.mediaDescription),
+            null,
+        );
+        cacheResponse.stations.forEach((station) => {
+            if (!station.bearer.id) {
+                return;
+            }
+            const mediaUri = getMedia(station.stationLogos);
+
+            // ADD CHANNEL
+            RadioDNSAuto.default.addNode(
+                this.props.serviceProviderKey,
+                station.bearer.id,
+                station.shortName,
+                mediaUri,
+                station.bearer.id,
+            );
+        });
     }
 }
 

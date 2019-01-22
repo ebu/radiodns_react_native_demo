@@ -79,7 +79,7 @@ export const getSPI = async (serviceProviderUrl: string) => {
 };
 
 /**
- * Converts raw services to stations.
+ * Converts raw services to stations. Only retain the services that have ip bearers.
  * @param services: The raw services from an SPI file.
  */
 const rawServicesToStations = (services: RawService[]) => {
