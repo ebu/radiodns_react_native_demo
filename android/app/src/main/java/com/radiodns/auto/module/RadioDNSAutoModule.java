@@ -1,23 +1,53 @@
 package com.radiodns.auto.module;
 
 import android.arch.persistence.room.Room;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.annotation.NonNull;
 
+import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
+import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.modules.core.DeviceEventManagerModule;
+import com.radiodns.auto.Commands;
 import com.radiodns.auto.auto_database.AutoNode;
 import com.radiodns.auto.auto_database.RadioDNSDatabase;
 
+import javax.annotation.Nullable;
+
 public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
 
+    private class DataUpdateReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case Commands.SEND_NEW_PLAYER_STATE_EVENT:
+                    WritableMap params = Arguments.createMap();
+                    params.putString("CHANNEL_ID", intent.getStringExtra("CHANNEL_ID"));
+                    params.putString("STATE", intent.getStringExtra("STATE"));
+                    sendEvent(RadioDNSAutoModule.this.reactContext, "updateState", params);
+                    break;
+                default:
+            }
+        }
+    }
+
     private RadioDNSDatabase db;
+    private ReactApplicationContext reactContext;
+
 
     public RadioDNSAutoModule(ReactApplicationContext reactContext) {
         super(reactContext);
-        db = Room
-                .databaseBuilder(reactContext, RadioDNSDatabase.class, "RadioDNSAuto-db")
-                .build();
+        this.reactContext = reactContext;
+        db = Room.databaseBuilder(reactContext, RadioDNSDatabase.class, "RadioDNSAuto-db").build();
+        DataUpdateReceiver dataUpdateReceiver = new DataUpdateReceiver();
+        IntentFilter intentFilter = new IntentFilter(Commands.SEND_NEW_PLAYER_STATE_EVENT);
+        reactContext.registerReceiver(dataUpdateReceiver, intentFilter);
     }
 
     @Override
@@ -45,5 +75,9 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
         node.imageURI = imageURI;
         node.streamURI = streamURI;
         db.autoNodeDAO().insertAll(node);
+    }
+
+    private void sendEvent(ReactContext reactContext, String eventName, @Nullable WritableMap params) {
+        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
     }
 }

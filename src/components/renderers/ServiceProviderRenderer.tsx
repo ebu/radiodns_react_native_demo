@@ -6,11 +6,11 @@ import {COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
 import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
 import {setStationsCurrentlyVisible} from "../../reducers/stations";
-import {getSPI, SPICacheContainer} from "../../services/SPICache";
+import {SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
 
 interface Props {
-    serviceProviderKey: string;
+    serviceProvider: SPICacheContainer;
     itemSize: number;
     navigationProp: NavigationScreenProps;
     onInvalidData: (key: string) => void;
@@ -20,7 +20,6 @@ interface Props {
 }
 
 interface State {
-    cacheResponse: SPICacheContainer | null;
     loading: boolean;
 }
 
@@ -31,25 +30,25 @@ interface State {
 class ServiceProviderRendererContainer extends React.Component<Props, State> {
 
     public readonly state: State = {
-        cacheResponse: null,
         loading: true,
     };
 
     public async componentDidMount() {
+        const cacheResponse = this.props.serviceProvider!;
         try {
-            const cacheResponse = await getSPI(this.props.serviceProviderKey);
             if (!cacheResponse.stations || cacheResponse.stations.length === 0) {
-                this.props.onInvalidData(this.props.serviceProviderKey);
+                this.props.onInvalidData(cacheResponse.spUrl);
                 return;
             }
             this.cacheForAndroidAuto(cacheResponse);
-            this.setState({cacheResponse, loading: false})
+            this.setState({loading: false})
         } catch (e) {
             console.warn(e);
         }
     }
 
     public render() {
+        const cacheResponse = this.props.serviceProvider!;
         return (
             <>
                 {this.state.loading &&
@@ -58,7 +57,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                     style={{width: this.props.itemSize, height: this.props.itemSize}}
                     color={COLOR_SECONDARY}
                 />}
-                {!this.state.loading && this.state.cacheResponse && this.state.cacheResponse.serviceProvider && !this.state.cacheResponse.error &&
+                {!this.state.loading && cacheResponse && cacheResponse.serviceProvider && !cacheResponse.error &&
                 <TouchableOpacity
                     style={{width: this.props.itemSize, height: this.props.itemSize}}
                     onPress={this.onPress}
@@ -68,23 +67,24 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                         style={{flex: 1}}
                         defaultSource={require("../../../ressources/ebu_logo.png")}
                         source={{
-                            uri: getMedia(this.state.cacheResponse.serviceProvider.mediaDescription) === ""
-                                ? `https://via.placeholder.com/200x200?text=${this.state.cacheResponse.serviceProvider.mediumName.text}`
-                                : getMedia(this.state.cacheResponse.serviceProvider.mediaDescription),
+                            uri: getMedia(cacheResponse.serviceProvider.mediaDescription) === ""
+                                ? `https://via.placeholder.com/200x200?text=${cacheResponse.serviceProvider.mediumName.text}`
+                                : getMedia(cacheResponse.serviceProvider.mediaDescription),
                         }}
                     />
                 </TouchableOpacity>}
-                {!this.state.loading && this.state.cacheResponse && this.state.cacheResponse.error &&
+                {!this.state.loading && cacheResponse && cacheResponse.error &&
                 <Text style={{width: this.props.itemSize, height: this.props.itemSize}}>Failed to load.</Text>}
             </>
         );
     }
 
     private onPress = () => {
-        if (this.state.loading || !this.state.cacheResponse || !this.state.cacheResponse.stations) {
+        const cacheResponse = this.props.serviceProvider!;
+        if (this.state.loading || !cacheResponse || !cacheResponse.stations) {
             return;
         }
-        this.props.loadStations!(this.state.cacheResponse.stations);
+        this.props.loadStations!(cacheResponse.stations);
         this.props.navigationProp.navigation.navigate("StationsView");
     };
 
@@ -94,7 +94,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
         }
         RadioDNSAuto.default.addNode(
             "root",
-            this.props.serviceProviderKey,
+            this.props.serviceProvider.spUrl,
             cacheResponse.serviceProvider.shortName.text,
             getMedia(cacheResponse.serviceProvider.mediaDescription),
             null,
@@ -107,7 +107,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
 
             // ADD CHANNEL
             RadioDNSAuto.default.addNode(
-                this.props.serviceProviderKey,
+                this.props.serviceProvider.spUrl,
                 station.bearer.id,
                 station.shortName,
                 mediaUri,

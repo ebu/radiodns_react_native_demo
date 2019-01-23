@@ -22,6 +22,8 @@ export interface SPICacheContainer {
 
     // if the SPI file was correctly loaded/parsed.
     error: boolean;
+
+    spUrl: string;
 }
 
 /**
@@ -35,7 +37,7 @@ const fetchAndPutInCache: (serviceProviderUrl: string) => Promise<SPICacheContai
     let cacheContainer: SPICacheContainer | null = null;
 
     if (res.status !== 200 || !res.data) {
-        cacheContainer = {expires: -1, error: true};
+        cacheContainer = {expires: -1, error: true, spUrl: serviceProviderUrl};
     } else {
         const parsedSPI: RawSPIFile = xml2js(res.data, {compact: true}) as any;
         const {service, serviceProvider} = parsedSPI.serviceInformation.services;
@@ -44,6 +46,7 @@ const fetchAndPutInCache: (serviceProviderUrl: string) => Promise<SPICacheContai
             stations: service ? rawServicesToStations(Array.isArray(service) ? service : [service]) : [],
             serviceProvider: serviceProvider ? rawServiceProviderToServiceProvider(serviceProvider) : undefined,
             error: false,
+            spUrl: serviceProviderUrl,
         };
     }
     await AsyncStorage.setItem(serviceProviderUrl, JSON.stringify(cacheContainer));
@@ -61,7 +64,7 @@ export const clearCache = () =>
  * @param serviceProviderUrl: The url for the service provider. For example: "https://atorf.spi.radio.ebu.io"
  */
 export const getSPI = async (serviceProviderUrl: string) => {
-    let cacheContainer: SPICacheContainer = {expires: -1, error: true};
+    let cacheContainer: SPICacheContainer = {expires: -1, error: true, spUrl: serviceProviderUrl};
     try {
         const value = await AsyncStorage.getItem(serviceProviderUrl);
         if (value) {
@@ -76,6 +79,10 @@ export const getSPI = async (serviceProviderUrl: string) => {
         console.error("ERROR", error);
     }
     return cacheContainer;
+};
+
+export const getAllSPIs: (serviceProviders: string[]) => Promise<SPICacheContainer[]> = (serviceProviders: string[]) => {
+    return Promise.all(serviceProviders.map((sp) => getSPI(sp)))
 };
 
 /**

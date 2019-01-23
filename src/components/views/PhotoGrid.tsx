@@ -1,19 +1,19 @@
 import * as React from "react";
 import {Dimensions, FlatList, ListRenderItemInfo, View} from "react-native";
 
-interface Props {
-    data: string[];
+interface Props<T> {
+    data: T[];
     itemsPerRow: number;
     itemMargin?: number;
-    renderItem: (item: string, itemWidth: number) => JSX.Element;
+    renderItem: (item: T, itemWidth: number) => JSX.Element;
 }
 
 /**
  * View containing a configurable image grid.
  */
-export class PhotoGrid extends React.Component<Props> {
+export class PhotoGrid<T> extends React.Component<Props<T>> {
 
-    public buildRows(items: string[], itemsPerRow = 3): string[][] {
+    public buildRows(items: T[], itemsPerRow = 3): T[][] {
         return items.reduce((rows, item, idx) => {
             // If a full row is filled create a new row array
             if (idx % itemsPerRow === 0 && idx > 0) {
@@ -23,7 +23,7 @@ export class PhotoGrid extends React.Component<Props> {
                 rows[rows.length - 1].push(item);
             }
             return rows;
-        }, new Array<string[]>());
+        }, new Array<T[]>());
     }
 
     public render() {
@@ -39,7 +39,7 @@ export class PhotoGrid extends React.Component<Props> {
         );
     }
 
-    private renderRow = (listRenderItemInfo: ListRenderItemInfo<string[]>) => {
+    private renderRow = (listRenderItemInfo: ListRenderItemInfo<T[]>) => {
         const items = listRenderItemInfo.item;
         // Calculate the width of a single item based on the device width
         // and the desired margins between individual items

@@ -1,22 +1,30 @@
 import * as React from "react";
-import {Button} from "react-native-elements";
+import {ActivityIndicator} from "react-native";
+import {Button, Text} from "react-native-elements";
 import {NavigationScreenDetails, NavigationScreenProps} from "react-navigation";
+import {connect} from "react-redux";
 import {COLOR_SECONDARY_DARK} from "../colors";
 import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPausePlayButton";
 import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
+import {BaseView} from "../components/views/BaseView";
 import {PhotoGrid} from "../components/views/PhotoGrid";
-import {SERVICE_PROVIDERS} from "../constants";
-import {clearCache} from "../services/SPICache";
+import {RootReducerState} from "../reducers/root-reducer";
+import {clearCache, SPICacheContainer} from "../services/SPICache";
+
+interface Props extends NavigationScreenProps {
+    // injected
+    serviceProviders?: SPICacheContainer[];
+}
 
 interface State {
-    serviceProviderUrls: string[];
+    serviceProviders: SPICacheContainer[]
     reloading: boolean;
 }
 
 /**
  * Home screen with the list of service providers.
  */
-export class HomeScreen extends React.Component<NavigationScreenProps, State> {
+export class HomeScreenContainer extends React.Component<Props, State> {
 
     public static navigationOptions = (navigationScreenDetails: NavigationScreenDetails<{}>) => ({
         title: "Home",
@@ -32,7 +40,7 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
     });
 
     public readonly state = {
-        serviceProviderUrls: SERVICE_PROVIDERS,
+        serviceProviders: [] as SPICacheContainer[],
         reloading: false,
     };
 
@@ -40,9 +48,12 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
         this.props.navigation.setParams({ handleOnClearCachePress: this.handleOnClearCachePress });
     }
 
-    public componentDidUpdate() {
+    public componentDidUpdate(prevProps: Props) {
         if (this.state.reloading) {
             this.setState({reloading: false});
+        }
+        if (this.props.serviceProviders !== prevProps.serviceProviders) {
+            this.setState({serviceProviders: Array.from(this.props.serviceProviders!)});
         }
     }
 
@@ -50,10 +61,19 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
         if (this.state.reloading) {
             return null;
         }
+
+        if (this.state.serviceProviders.length === 0) {
+            return (
+                <BaseView>
+                    <Text h3>Retrieving metadata...</Text>
+                    <ActivityIndicator size="large" style={{width: 300, height: 300}} color={COLOR_SECONDARY_DARK}/>
+                </BaseView>
+            )
+        }
         return (
             <>
                 <PhotoGrid
-                    data={this.state.serviceProviderUrls}
+                    data={this.state.serviceProviders}
                     itemsPerRow={4}
                     renderItem={this.renderItem}
                 />
@@ -67,13 +87,13 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
      * @param item: The url to the SPI file.
      * @param itemSize: The width and height of the component.
      */
-    private renderItem = (item: string, itemSize: number) => (
+    private renderItem = (item: SPICacheContainer, itemSize: number) => (
         <ServiceProviderRenderer
             navigationProp={this.props}
-            key={item}
+            key={item.spUrl}
             itemSize={itemSize}
-            serviceProviderKey={item}
-            onInvalidData={this.removeItemIfBadData(item)}
+            serviceProvider={item}
+            onInvalidData={this.removeItemIfBadData(item.spUrl)}
         />
     );
 
@@ -82,9 +102,9 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
      * @param key: The service provider url to remove.
      */
     private removeItemIfBadData = (key: string) => () => {
-        this.setState({
-            serviceProviderUrls: this.state.serviceProviderUrls.filter((item) => item !== key),
-        });
+        this.setState((prevState) => ({
+            serviceProviders: prevState.serviceProviders.filter((item) => item.spUrl !== key),
+        }));
     };
 
     private handleOnClearCachePress = async () => {
@@ -92,3 +112,9 @@ export class HomeScreen extends React.Component<NavigationScreenProps, State> {
         this.setState({reloading: true})
     };
 }
+
+export const HomeScreen = connect(
+    (state: RootReducerState) => ({
+        serviceProviders: state.serviceProviders.serviceProviders,
+    }),
+)(HomeScreenContainer);

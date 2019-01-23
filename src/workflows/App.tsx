@@ -8,7 +8,10 @@ import {COLOR_PRIMARY, COLOR_SECONDARY} from "../colors";
 import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
 import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
+import {SERVICE_PROVIDERS} from "../constants";
 import {store} from "../reducers/root-reducer";
+import {setServiceProviders} from "../reducers/service-providers";
+import {getAllSPIs} from "../services/SPICache";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
 import {StationsView} from "./StationsView";
@@ -45,9 +48,13 @@ export default class App extends React.Component {
         },
     ));
 
-    public componentWillMount() {
+    public async componentWillMount() {
         // Subscribe to the app state changes (forground, background, inactive).
         AppState.addEventListener("change", this.handleAppStateChange);
+
+        // Add SPI files to the app's state.
+        const spiCacheResponses = await getAllSPIs(SERVICE_PROVIDERS);
+        store.dispatch(setServiceProviders(spiCacheResponses));
     }
 
     public componentWillUnmount() {

@@ -17,6 +17,7 @@ export const BaseView: React.FC<Props> = (props) => (
             justifyContent: "center",
             alignItems: "center",
             padding: 8,
+            backgroundColor: props.backgroundColor,
             ...props,
         }}
     >
