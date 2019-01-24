@@ -66,7 +66,7 @@ export class HomeScreenContainer extends React.Component<Props, State> {
             return (
                 <BaseView>
                     <Text h3>Retrieving metadata...</Text>
-                    <ActivityIndicator size="large" style={{width: 300, height: 300}} color={COLOR_SECONDARY_DARK}/>
+                    <ActivityIndicator size="large" color={COLOR_SECONDARY_DARK}/>
                 </BaseView>
             )
         }

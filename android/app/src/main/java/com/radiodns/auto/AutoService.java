@@ -2,7 +2,10 @@ package com.radiodns.auto;
 
 import android.arch.persistence.room.Room;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.media.session.PlaybackState;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -28,6 +31,8 @@ public class AutoService extends MediaBrowserServiceCompat {
     private final String MEDIA_ROOT_ID = "MEDIA_ROOT_ID";
     private RadioDNSDatabase db;
 
+    PlaybackStateCompat.Builder stateBuilder;
+
     private String currentMediaID;
 
     @Override
@@ -37,6 +42,14 @@ public class AutoService extends MediaBrowserServiceCompat {
         db = Room.databaseBuilder(getApplicationContext(), RadioDNSDatabase.class, "RadioDNSAuto-db").allowMainThreadQueries().build();
 
         session = new MediaSessionCompat(this, "RADIODNS_MEDIA_COMPAT_SESSION_TAG");
+        stateBuilder = new PlaybackStateCompat.Builder();
+        stateBuilder.setActions(PlaybackState.ACTION_PLAY
+                | PlaybackState.ACTION_PAUSE
+                | PlaybackState.ACTION_SKIP_TO_NEXT
+                | PlaybackState.ACTION_SKIP_TO_PREVIOUS
+                | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
+                | PlaybackState.ACTION_PLAY_FROM_SEARCH
+        );
 
         session.setActive(true);
         setSessionToken(session.getSessionToken());
@@ -45,6 +58,14 @@ public class AutoService extends MediaBrowserServiceCompat {
         setMediaSessionState(PlaybackState.STATE_BUFFERING);
 
         session.setCallback(new MediaSessionCompat.Callback() {
+
+            @Override
+            public void onPrepare() {
+                MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
+                builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, "http://static.nonrk.radio.ebu.io/600x600/5847153a-7167-4da5-9bfe-21c0af7ebea6.png");
+                builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, "je suis un titre oui");
+                session.setMetadata(builder.build());
+            }
 
             @Override
             public void onPlayFromMediaId(String mediaId, Bundle extras) {
@@ -145,11 +166,14 @@ public class AutoService extends MediaBrowserServiceCompat {
                         new MediaMetadataCompat.Builder()
                                 .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, node.key)
                                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, node.value)
-                                .putString(MediaMetadataCompat.	METADATA_KEY_DISPLAY_TITLE, node.value)
-                                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, node.imageURI)
-                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
                                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
                                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, node.imageURI)
+                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, node.value)
+                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM, node.imageURI)
+                                .putString(MediaMetadataCompat.METADATA_KEY_ART_URI, node.imageURI)
+                                .putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
+                                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, node.value)
+                                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "Descriptionnnn")
                                 .build().getDescription(),
                         node.streamURI != null ? MediaBrowserCompat.MediaItem.FLAG_PLAYABLE : MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                 ));
@@ -168,9 +192,7 @@ public class AutoService extends MediaBrowserServiceCompat {
     }
 
     private void setMediaSessionState(int state) {
-        PlaybackState.Builder stateBuilder = new PlaybackState.Builder();
-        stateBuilder.setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT | PlaybackState.ACTION_SKIP_TO_PREVIOUS);
         stateBuilder.setState(state, 0, 1);
-        session.setPlaybackState(PlaybackStateCompat.fromPlaybackState(stateBuilder.build()));
+        session.setPlaybackState(stateBuilder.build());
     }
 }
