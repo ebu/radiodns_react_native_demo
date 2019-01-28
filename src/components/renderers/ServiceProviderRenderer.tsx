@@ -1,10 +1,9 @@
 import * as React from "react";
-import {ActivityIndicator, Image, Text, TouchableOpacity} from "react-native";
+import {ActivityIndicator, Image, TouchableOpacity, View} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
-import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
 import {setStationsCurrentlyVisible} from "../../reducers/stations";
 import {SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
@@ -13,7 +12,6 @@ interface Props {
     serviceProvider: SPICacheContainer;
     itemSize: number;
     navigationProp: NavigationScreenProps;
-    onInvalidData: (key: string) => void;
 
     // injected
     loadStations?: (stations: Station[]) => void;
@@ -34,17 +32,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
     };
 
     public async componentDidMount() {
-        const cacheResponse = this.props.serviceProvider!;
-        try {
-            if (!cacheResponse.stations || cacheResponse.stations.length === 0) {
-                this.props.onInvalidData(cacheResponse.spUrl);
-                return;
-            }
-            this.cacheForAndroidAuto(cacheResponse);
-            this.setState({loading: false})
-        } catch (e) {
-            console.warn(e);
-        }
+        this.setState({loading: false})
     }
 
     public render() {
@@ -57,7 +45,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                     style={{width: this.props.itemSize, height: this.props.itemSize}}
                     color={COLOR_SECONDARY}
                 />}
-                {!this.state.loading && cacheResponse && cacheResponse.serviceProvider && !cacheResponse.error &&
+                {!this.state.loading && cacheResponse.serviceProvider && !cacheResponse.error &&
                 <TouchableOpacity
                     style={{width: this.props.itemSize, height: this.props.itemSize}}
                     onPress={this.onPress}
@@ -73,8 +61,17 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                         }}
                     />
                 </TouchableOpacity>}
-                {!this.state.loading && cacheResponse && cacheResponse.error &&
-                <Text style={{width: this.props.itemSize, height: this.props.itemSize}}>Failed to load.</Text>}
+                {!this.state.loading && cacheResponse.error &&
+                <View style={{width: this.props.itemSize, height: this.props.itemSize}}>
+                    <Image
+                        resizeMode="cover"
+                        style={{flex: 1}}
+                        defaultSource={require("../../../ressources/ebu_logo.png")}
+                        source={{
+                            uri: "https://via.placeholder.com/200x200?text=ERROR",
+                        }}
+                    />
+                </View>}
             </>
         );
     }
@@ -87,34 +84,6 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
         this.props.loadStations!(cacheResponse.stations);
         this.props.navigationProp.navigation.navigate("StationsView");
     };
-
-    private cacheForAndroidAuto = async (cacheResponse: SPICacheContainer) => {
-        if (!cacheResponse.serviceProvider || !cacheResponse.stations) {
-            return;
-        }
-        RadioDNSAuto.default.addNode(
-            "root",
-            this.props.serviceProvider.spUrl,
-            cacheResponse.serviceProvider.shortName.text,
-            getMedia(cacheResponse.serviceProvider.mediaDescription),
-            null,
-        );
-        cacheResponse.stations.forEach((station) => {
-            if (!station.bearer.id) {
-                return;
-            }
-            const mediaUri = getMedia(station.stationLogos);
-
-            // ADD CHANNEL
-            RadioDNSAuto.default.addNode(
-                this.props.serviceProvider.spUrl,
-                station.bearer.id,
-                station.shortName,
-                mediaUri,
-                station.bearer.id,
-            );
-        });
-    }
 }
 
 export const ServiceProviderRenderer = connect(

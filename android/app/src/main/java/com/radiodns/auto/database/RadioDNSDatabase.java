@@ -1,4 +1,4 @@
-package com.radiodns.auto.auto_database;
+package com.radiodns.auto.database;
 
 import android.arch.persistence.room.Database;
 import android.arch.persistence.room.RoomDatabase;

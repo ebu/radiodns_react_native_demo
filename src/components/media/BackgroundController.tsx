@@ -5,6 +5,8 @@ import {Command} from "react-native-music-control/lib/types";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {Station} from "../../models/Station";
+import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
+import {Signal} from "../../native-modules/RadioDNSAuto";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {
     setActiveStation,
@@ -22,6 +24,7 @@ interface Props {
     currentSteam?: Station | null;
     paused?: boolean;
     loading?: boolean;
+    error?: boolean;
     volume?: number;
     setPausedState?: (paused: boolean) => void;
     setLoadingState?: (loading: boolean) => void;
@@ -88,6 +91,33 @@ class BackgroundControllerContainer extends React.Component<Props> {
                     console.warn("UNSUPPORTED COMMAND FROM ANDROID AUTO:", e.STATE);
             }
         });
+
+        // DeviceEventEmitter.addListener("updateSearchString", (e: { SEARCH_STRING: string }) => {
+        //     const stationGroup = this.props.serviceProviders!
+        //         .map((spiCache) => spiCache.stations)
+        //         .filter((stations) => stations !== undefined)
+        //         .reduce((prev, current) => {
+        //
+        //         });
+        //     this.props.setStationPlaylist!(stationGroup!);
+        //     this.props.setActiveStation!(stationGroup!.reduce((prev, current) =>
+        //         current.bearer.id === e.CHANNEL_ID
+        //             ? current
+        //             : prev));
+        // });
+    }
+
+    public componentDidUpdate(prevProps: Readonly<Props>): void {
+        if (prevProps.loading !== this.props.loading) {
+            RadioDNSAuto.default.sendSignal(
+                this.props.loading
+                    ? Signal.UPDATE_MEDIA_STATE_TO_BUFFERING
+                    : Signal.UPDATE_MEDIA_STATE_TO_PLAYING,
+            );
+        }
+        if (!prevProps.error && this.props.error) {
+            RadioDNSAuto.default.sendSignal(Signal.UPDATE_MEDIA_STATE_TO_ERROR);
+        }
     }
 
     public render() {
@@ -101,6 +131,7 @@ export const BackgroundController = connect(
         currentSteam: state.stations.activeStation,
         paused: state.stations.paused,
         loading: state.stations.loading,
+        error: state.stations.error,
         volume: state.stations.volume,
     }),
     ((dispatch: Dispatch) => ({

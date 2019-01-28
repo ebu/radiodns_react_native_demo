@@ -17,7 +17,6 @@ interface Props extends NavigationScreenProps {
 }
 
 interface State {
-    serviceProviders: SPICacheContainer[]
     reloading: boolean;
 }
 
@@ -40,7 +39,6 @@ export class HomeScreenContainer extends React.Component<Props, State> {
     });
 
     public readonly state = {
-        serviceProviders: [] as SPICacheContainer[],
         reloading: false,
     };
 
@@ -48,12 +46,9 @@ export class HomeScreenContainer extends React.Component<Props, State> {
         this.props.navigation.setParams({ handleOnClearCachePress: this.handleOnClearCachePress });
     }
 
-    public componentDidUpdate(prevProps: Props) {
+    public componentDidUpdate() {
         if (this.state.reloading) {
             this.setState({reloading: false});
-        }
-        if (this.props.serviceProviders !== prevProps.serviceProviders) {
-            this.setState({serviceProviders: Array.from(this.props.serviceProviders!)});
         }
     }
 
@@ -62,7 +57,7 @@ export class HomeScreenContainer extends React.Component<Props, State> {
             return null;
         }
 
-        if (this.state.serviceProviders.length === 0) {
+        if (this.props.serviceProviders!.length === 0) {
             return (
                 <BaseView>
                     <Text h3>Retrieving metadata...</Text>
@@ -73,7 +68,7 @@ export class HomeScreenContainer extends React.Component<Props, State> {
         return (
             <>
                 <PhotoGrid
-                    data={this.state.serviceProviders}
+                    data={this.props.serviceProviders!}
                     itemsPerRow={4}
                     renderItem={this.renderItem}
                 />
@@ -93,19 +88,8 @@ export class HomeScreenContainer extends React.Component<Props, State> {
             key={item.spUrl}
             itemSize={itemSize}
             serviceProvider={item}
-            onInvalidData={this.removeItemIfBadData(item.spUrl)}
         />
     );
-
-    /**
-     * Callback to remove from the serviceProviderUrls any service provider that has an SPI file that does not have at least one IP station.
-     * @param key: The service provider url to remove.
-     */
-    private removeItemIfBadData = (key: string) => () => {
-        this.setState((prevState) => ({
-            serviceProviders: prevState.serviceProviders.filter((item) => item.spUrl !== key),
-        }));
-    };
 
     private handleOnClearCachePress = async () => {
         await clearCache();

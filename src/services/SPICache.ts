@@ -81,8 +81,13 @@ export const getSPI = async (serviceProviderUrl: string) => {
     return cacheContainer;
 };
 
-export const getAllSPIs: (serviceProviders: string[]) => Promise<SPICacheContainer[]> = (serviceProviders: string[]) => {
-    return Promise.all(serviceProviders.map((sp) => getSPI(sp)))
+export const getAllSPIs: (serviceProviders: string[]) => Promise<SPICacheContainer[]> = async (serviceProviders: string[]) => {
+    return (await Promise.all(serviceProviders.map((sp) => getSPI(sp))))
+        .filter((cacheResponse) => !cacheResponse.error
+            && cacheResponse.serviceProvider
+            && cacheResponse.stations
+            && cacheResponse.stations.length > 0,
+        );
 };
 
 /**

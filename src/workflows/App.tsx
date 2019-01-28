@@ -9,9 +9,11 @@ import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBou
 import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
 import {SERVICE_PROVIDERS} from "../constants";
+import * as RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import {store} from "../reducers/root-reducer";
 import {setServiceProviders} from "../reducers/service-providers";
-import {getAllSPIs} from "../services/SPICache";
+import {getAllSPIs, SPICacheContainer} from "../services/SPICache";
+import {getMedia} from "../utilities";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
 import {StationsView} from "./StationsView";
@@ -54,6 +56,8 @@ export default class App extends React.Component {
 
         // Add SPI files to the app's state.
         const spiCacheResponses = await getAllSPIs(SERVICE_PROVIDERS);
+        spiCacheResponses.forEach(this.cacheForAndroidAuto);
+        RadioDNSAuto.default.refresh();
         store.dispatch(setServiceProviders(spiCacheResponses));
     }
 
@@ -79,5 +83,33 @@ export default class App extends React.Component {
         if (nextAppState === "inactive") {
             MusicControl.stopControl()
         }
+    };
+
+    private cacheForAndroidAuto = (cacheResponse: SPICacheContainer) => {
+        if (!cacheResponse.serviceProvider || !cacheResponse.stations) {
+            return;
+        }
+        RadioDNSAuto.default.addNode(
+            "root",
+            cacheResponse.spUrl,
+            cacheResponse.serviceProvider.shortName.text,
+            getMedia(cacheResponse.serviceProvider.mediaDescription),
+            null,
+        );
+        cacheResponse.stations.forEach((station) => {
+            if (!station.bearer.id) {
+                return;
+            }
+            const mediaUri = getMedia(station.stationLogos);
+
+            // ADD CHANNEL
+            RadioDNSAuto.default.addNode(
+                cacheResponse.spUrl,
+                station.bearer.id,
+                station.shortName,
+                mediaUri,
+                station.bearer.id,
+            );
+        });
     }
 }
