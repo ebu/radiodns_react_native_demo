@@ -9,26 +9,17 @@ import android.util.Log;
 
 public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
 
-    private AutoService autoService;
+    private MediaService autoService;
 
-    public MediaSessionEventCallback(AutoService autoService) {
+    public MediaSessionEventCallback(MediaService autoService) {
         this.autoService = autoService;
     }
-
-    // @Override
-    // public void onPrepare() {
-    //     MediaMetadataCompat.Builder builder = new MediaMetadataCompat.Builder();
-    //     builder.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, "http://static.nonrk.radio.ebu.io/600x600/5847153a-7167-4da5-9bfe-21c0af7ebea6.png");
-    //     builder.putString(MediaMetadataCompat.METADATA_KEY_TITLE, "Title");
-    //     autoService.getSession().setMetadata(builder.build());
-    // }
 
     @Override
     public void onPlayFromMediaId(String mediaId, Bundle extras) {
         Log.i("[" + this.getClass().getName() + "]", "ON onPlayFromMediaId");
         autoService.setCurrentMediaID(mediaId);
-        autoService.setMediaSessionState(PlaybackState.STATE_BUFFERING);
-        autoService.updateState("PLAYING");
+        autoService.updateState("PLAYING", PlaybackState.STATE_BUFFERING);
     }
 
     @Override
@@ -46,36 +37,33 @@ public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
     @Override
     public void onPlay() {
         Log.i("[" + this.getClass().getName() + "]", "ON PLAY");
-        autoService.setMediaSessionState(PlaybackState.STATE_PLAYING);
-        autoService.updateState("PLAYING");
+        autoService.updateState("PLAYING", PlaybackState.STATE_PLAYING);
     }
 
     @Override
     public void onPause() {
         Log.i("[" + this.getClass().getName() + "]", "ON PAUSE");
-        autoService.setMediaSessionState(PlaybackState.STATE_PAUSED);
-        autoService.updateState("PAUSED");
+        autoService.updateState("PAUSED", PlaybackState.STATE_PAUSED);
     }
 
     @Override
     public void onStop() {
         Log.i("[" + this.getClass().getName() + "]", "ON STOP");
-        autoService.setMediaSessionState(PlaybackState.STATE_STOPPED);
-        autoService.updateState("STOPPED");
+        autoService.updateState("STOPPED", PlaybackState.STATE_STOPPED);
     }
 
     @Override
     public void onSkipToPrevious() {
         Log.i("[" + this.getClass().getName() + "]", "ON PREVIOUS");
-        autoService.setMediaSessionState(PlaybackState.STATE_BUFFERING);
-        autoService.updateState("PREVIOUS");
+        autoService.setCurrentMediaID(autoService.getPreviousMediaID());
+        autoService.updateState("PREVIOUS", PlaybackState.STATE_BUFFERING);
     }
 
     @Override
     public void onSkipToNext() {
         Log.i("[" + this.getClass().getName() + "]", "ON NEXT");
-        autoService.setMediaSessionState(PlaybackState.STATE_BUFFERING);
-        autoService.updateState("NEXT");
+        autoService.setCurrentMediaID(autoService.getNextMediaID());
+        autoService.updateState("NEXT", PlaybackState.STATE_BUFFERING);
     }
 
     @Override

@@ -22,6 +22,14 @@ public interface AutoNodeDAO {
     List<AutoNode> loadChildren(String nodeKey);
 
     /**
+     * Finds a node based on its key.
+     * @param nodeKey: The key of the node.
+     * @return The matching key or null.
+     */
+    @Query("SELECT * FROM auto_node WHERE a_key = :nodeKey")
+    AutoNode find(String nodeKey);
+
+    /**
      * Inserts the given nodes into the database. Overrides existing values.
      * @param nodes: The nodes to be inserted.
      */

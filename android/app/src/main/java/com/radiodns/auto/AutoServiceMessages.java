@@ -4,12 +4,12 @@ public class AutoServiceMessages {
 
     // INTERNAL
     /**
-     * An activity will bind itself to the AutoService.
+     * An activity will bind itself to the MediaService.
      */
     public final static int REGISTER_CLIENT = 1;
 
     /**
-     * An activity will unbind itself to the AutoService.
+     * An activity will unbind itself to the MediaService.
      */
     public final static int UNREGISTER_CLIENT = 2;
 
@@ -31,7 +31,12 @@ public class AutoServiceMessages {
     /**
      * Send to the JS bundle the new search string (string from which a new station shall be picked).
      */
-    public final static int SEND_SEARCH_STRING = 6;
+    public final static int SEND_PLAY_FROM_SEARCH_STRING = 6;
+
+    /**
+     * Play a random station.
+     */
+    public final static int SEND_PLAY_RANDOM = 7;
 
 
     // SIGNALS

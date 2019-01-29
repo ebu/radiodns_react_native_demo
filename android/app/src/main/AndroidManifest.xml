@@ -34,7 +34,7 @@
         <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
             android:resource="@drawable/ic_notification" />
 
-        <service android:name=".auto.AutoService" android:exported="true">
+        <service android:name=".auto.MediaService" android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService" />
             </intent-filter>

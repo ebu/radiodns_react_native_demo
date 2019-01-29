@@ -18,7 +18,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.radiodns.auto.AutoService;
+import com.radiodns.auto.MediaService;
 import com.radiodns.auto.AutoServiceMessages;
 import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.database.RadioDNSDatabase;
@@ -45,9 +45,13 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
                     params.putString("STATE", msg.getData().getString("STATE"));
                     sendEvent("updateState", params);
                     break;
-                case AutoServiceMessages.SEND_SEARCH_STRING:
+                case AutoServiceMessages.SEND_PLAY_FROM_SEARCH_STRING:
                     params.putString("SEARCH_STRING", msg.getData().getString("SEARCH_STRING"));
-                    sendEvent("updateSearchString", params);
+                    sendEvent("playFromSearchString", params);
+                    break;
+                case AutoServiceMessages.SEND_PLAY_RANDOM:
+                    sendEvent("playRandom", params);
+                    break;
                 default:
                     super.handleMessage(msg);
             }
@@ -86,7 +90,7 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
             }
         };
         mMessenger = new Messenger(new IncomingHandler(Looper.getMainLooper()));
-        Intent bindingIntent = new Intent(reactContext, AutoService.class);
+        Intent bindingIntent = new Intent(reactContext, MediaService.class);
         bindingIntent.setAction(this.getClass().getName());
         reactContext.bindService(bindingIntent, mConnection, Context.BIND_AUTO_CREATE);
     }
@@ -153,7 +157,7 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
     }
 
     /**
-     * Sends an signal to the AutoService. A signal is just a number that has a certain meaning for
+     * Sends an signal to the MediaService. A signal is just a number that has a certain meaning for
      * the application. Refer to #AutoServiceMessages for a list of integers that can be used as signals.
      */
     @ReactMethod

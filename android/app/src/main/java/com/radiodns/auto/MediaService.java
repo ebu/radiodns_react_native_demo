@@ -2,6 +2,7 @@ package com.radiodns.auto;
 
 import android.arch.persistence.room.Room;
 import android.content.Intent;
+import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.os.Handler;
@@ -24,12 +25,13 @@ import com.radiodns.auto.database.RadioDNSDatabase;
 import com.radiodns.auto.module.RadioDNSAutoModule;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * MediaBrowserService implementation for the RadioDNS demonstrator.
  */
-public class AutoService extends MediaBrowserServiceCompat {
+public class MediaService extends MediaBrowserServiceCompat {
 
     // Current android media session
     private MediaSessionCompat session;
@@ -42,6 +44,10 @@ public class AutoService extends MediaBrowserServiceCompat {
 
     // Id (url) of the media currently being played.
     private String currentMediaID;
+    private String previousMediaID;
+    private String nextMediaID;
+
+    private Thread updateTask;
 
     // List of activities that are bound to this service and registered to get Messages form this
     // service.
@@ -56,9 +62,9 @@ public class AutoService extends MediaBrowserServiceCompat {
 
     // Incoming Message handler.
     static class IncomingHandler extends Handler {
-        private AutoService service;
+        private MediaService service;
 
-        IncomingHandler(AutoService service) {
+        IncomingHandler(MediaService service) {
             this.service = service;
         }
 
@@ -114,13 +120,6 @@ public class AutoService extends MediaBrowserServiceCompat {
 
         session = new MediaSessionCompat(this, "RADIODNS_MEDIA_COMPAT_SESSION_TAG");
         stateBuilder = new PlaybackStateCompat.Builder();
-        stateBuilder.setActions(PlaybackState.ACTION_PLAY
-                | PlaybackState.ACTION_PAUSE
-                | PlaybackState.ACTION_SKIP_TO_NEXT
-                | PlaybackState.ACTION_SKIP_TO_PREVIOUS
-                | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
-                | PlaybackState.ACTION_PLAY_FROM_SEARCH
-        );
 
         session.setActive(true);
         setSessionToken(session.getSessionToken());
@@ -173,12 +172,6 @@ public class AutoService extends MediaBrowserServiceCompat {
                                 .putString(MediaMetadataCompat.METADATA_KEY_TITLE, node.value)
                                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
                                 .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, node.imageURI)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, node.value)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM, node.imageURI)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_ART_URI, node.imageURI)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, node.value)
-                                //.putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_DESCRIPTION, "Descriptionnnn")
                                 .build().getDescription(),
                         node.streamURI != null ? MediaBrowserCompat.MediaItem.FLAG_PLAYABLE : MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
                 ));
@@ -188,7 +181,33 @@ public class AutoService extends MediaBrowserServiceCompat {
         result.sendResult(mediaItems);
     }
 
-    public void updateState(String state) {
+    public void updateState(String state, int iState) {
+        AutoNode node = db.autoNodeDAO().find(currentMediaID);
+        List<AutoNode> playlist = db.autoNodeDAO().loadChildren(node.childOf);
+
+        if (playlist.size() >= 3) {
+            Iterator<AutoNode> i = playlist.iterator();
+            int index = 0;
+            while(i.hasNext()) {
+                if (i.next().key.equals(node.key)) {
+                    break;
+                }
+                index++;
+            }
+
+            previousMediaID = playlist.get(index == 0 ? playlist.size() - 1 : index - 1).key;
+            nextMediaID = playlist.get(index == playlist.size() - 1 ? 0 : index + 1).key;
+        } else {
+            previousMediaID = null;
+            nextMediaID = null;
+        }
+
+        session.setMetadata(
+                new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, node.value)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
+                        .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
+                        .build());
 
         Message msg = Message.obtain(null, AutoServiceMessages.SEND_NEW_PLAYER_STATE_EVENT);
         Bundle data = new Bundle();
@@ -197,10 +216,17 @@ public class AutoService extends MediaBrowserServiceCompat {
         msg.setData(data);
 
         sendMessage(msg);
+
+        setMediaSessionState(iState);
     }
 
-    public void setSearchString(String searchString) {
-        Message msg = Message.obtain(null, AutoServiceMessages.SEND_SEARCH_STRING);
+    public void sendPlayRandom() {
+        Message msg = Message.obtain(null, AutoServiceMessages.SEND_PLAY_RANDOM);
+        sendMessage(msg);
+    }
+
+    public void sendPlayFromSearchString(String searchString) {
+        Message msg = Message.obtain(null, AutoServiceMessages.SEND_PLAY_FROM_SEARCH_STRING);
         Bundle data = new Bundle();
         data.putString("SEARCH_STRING", searchString);
         msg.setData(data);
@@ -209,6 +235,19 @@ public class AutoService extends MediaBrowserServiceCompat {
     }
 
     public void setMediaSessionState(int state) {
+        long actions = PlaybackState.ACTION_PLAY
+                | PlaybackState.ACTION_PAUSE
+                | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
+                | PlaybackState.ACTION_PLAY_FROM_SEARCH;
+
+        if (nextMediaID != null) {
+            actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
+        }
+        if (previousMediaID != null) {
+            actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
+        }
+
+        stateBuilder.setActions(actions);
         stateBuilder.setState(state, 0, 1);
         session.setPlaybackState(stateBuilder.build());
     }
@@ -219,6 +258,14 @@ public class AutoService extends MediaBrowserServiceCompat {
 
     public void setCurrentMediaID(String currentMediaID) {
         this.currentMediaID = currentMediaID;
+    }
+
+    public String getPreviousMediaID() {
+        return previousMediaID;
+    }
+
+    public String getNextMediaID() {
+        return nextMediaID;
     }
 
     public ArrayList<Messenger> getmClients() {
