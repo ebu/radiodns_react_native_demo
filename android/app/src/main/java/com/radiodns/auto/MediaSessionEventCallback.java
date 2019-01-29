@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
 import android.support.v4.media.session.MediaSessionCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
@@ -32,8 +33,14 @@ public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
 
     @Override
     public void onPlayFromSearch(String query, Bundle extras) {
-        Log.i("[" + this.getClass().getName() + "]", "ON onPlayFromSearch");
+        Log.i("[" + this.getClass().getName() + "]", "ON onPlayFromSearch: " + query);
         autoService.setMediaSessionState(PlaybackState.STATE_BUFFERING);
+
+        if (TextUtils.isEmpty(query)) {
+            autoService.sendPlayRandom();
+        } else {
+            autoService.sendPlayFromSearchString(query);
+        }
     }
 
     @Override

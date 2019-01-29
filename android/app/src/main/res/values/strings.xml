@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">RadioDns</string>
+    <string name="error_media_format_unsuported">This station\'s stream format is not supported.</string>
 </resources>

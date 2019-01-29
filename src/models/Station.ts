@@ -16,7 +16,7 @@ export interface Logo {
 export interface Station {
     // Selected channel from metadata to listen to the ip station.
     bearer: {
-        id: string | null;
+        id: string;
         cost: string;
         offset?: number;
         mimeValue: "audio/aacp" | "audio/mpeg";

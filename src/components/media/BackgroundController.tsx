@@ -6,7 +6,7 @@ import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {Station} from "../../models/Station";
 import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
-import {Signal} from "../../native-modules/RadioDNSAuto";
+import {Event, Signal} from "../../native-modules/RadioDNSAuto";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {
     setActiveStation,
@@ -17,6 +17,7 @@ import {
     setVolume,
 } from "../../reducers/stations";
 import {SPICacheContainer} from "../../services/SPICache";
+import {commonWords, shuffleArray} from "../../utilities";
 
 interface Props {
     // injected props
@@ -57,25 +58,13 @@ class BackgroundControllerContainer extends React.Component<Props> {
         MusicControl.on(Command.closeNotification, () => this.props.setPausedState!(true));
 
         // SETUP AUTO CONTROLS
-        DeviceEventEmitter.addListener("updateState", (e: {
+        DeviceEventEmitter.addListener(Event.UPDATE_STATE, (e: {
             STATE: "PLAYING" | "PAUSED" | "STOPPED" | "PREVIOUS" | "NEXT",
             CHANNEL_ID: string,
         }) => {
             switch (e.STATE) {
                 case "PLAYING":
-                    const stationGroup = this.props.serviceProviders!
-                        .map((spiCache) => spiCache.stations)
-                        .filter((stations) => stations !== undefined)
-                        .reduce((prev, current) => current!.filter((station) =>
-                            station.bearer.id === e.CHANNEL_ID).length > 0
-                            ? current
-                            : prev
-                            , []);
-                    this.props.setStationPlaylist!(stationGroup!);
-                    this.props.setActiveStation!(stationGroup!.reduce((prev, current) =>
-                        current.bearer.id === e.CHANNEL_ID
-                            ? current
-                            : prev));
+                    this.playFromId(e.CHANNEL_ID);
                     break;
                 case "STOPPED":
                 case "PAUSED":
@@ -92,19 +81,28 @@ class BackgroundControllerContainer extends React.Component<Props> {
             }
         });
 
-        // DeviceEventEmitter.addListener("updateSearchString", (e: { SEARCH_STRING: string }) => {
-        //     const stationGroup = this.props.serviceProviders!
-        //         .map((spiCache) => spiCache.stations)
-        //         .filter((stations) => stations !== undefined)
-        //         .reduce((prev, current) => {
-        //
-        //         });
-        //     this.props.setStationPlaylist!(stationGroup!);
-        //     this.props.setActiveStation!(stationGroup!.reduce((prev, current) =>
-        //         current.bearer.id === e.CHANNEL_ID
-        //             ? current
-        //             : prev));
-        // });
+        DeviceEventEmitter.addListener(Event.PLAY_FROM_SEARCH_STRING, (e: { SEARCH_STRING: string }) => {
+            if (!this.props.serviceProviders || this.props.serviceProviders.length === 0) {
+                return;
+            }
+            const potentialStations = this.props.serviceProviders
+                .reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Station[])
+                .map((station) => ({
+                    id: station.bearer.id,
+                    score: commonWords(station.shortName, e.SEARCH_STRING) + commonWords(station.mediumName, e.SEARCH_STRING)
+                        + commonWords(station.longName, e.SEARCH_STRING),
+                }))
+                .sort((a, b) => b.score - a.score);
+            this.playFromId(potentialStations[0].id!);
+        });
+
+        DeviceEventEmitter.addListener(Event.PLAY_RANDOM, () => {
+            const scrambledArray = shuffleArray(this.props.serviceProviders!
+                .filter((cacheContainer) => cacheContainer.stations !== undefined)
+                .reduce((acc, cacheContainer) => acc!.concat(cacheContainer.stations!), [] as Station[])
+                .map((stations) => stations.bearer.id));
+            this.playFromId(scrambledArray[0]);
+        })
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>): void {
@@ -122,6 +120,22 @@ class BackgroundControllerContainer extends React.Component<Props> {
 
     public render() {
         return null;
+    }
+
+    private playFromId(channelId: string) {
+        const stationGroup = this.props.serviceProviders!
+            .map((spiCache) => spiCache.stations)
+            .filter((stations) => stations !== undefined)
+            .reduce((prev, current) => current!.filter((station) =>
+                station.bearer.id === channelId).length > 0
+                ? current
+                : prev
+                , []);
+        this.props.setStationPlaylist!(stationGroup!);
+        this.props.setActiveStation!(stationGroup!.reduce((prev, current) =>
+            current.bearer.id === channelId
+                ? current
+                : prev));
     }
 }
 
