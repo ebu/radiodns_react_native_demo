@@ -1,4 +1,4 @@
-package com.radiodns.auto;
+package com.radiodns.auto.messages;
 
 public class AutoServiceMessages {
 

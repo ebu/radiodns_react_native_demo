@@ -1,4 +1,4 @@
-package com.radiodns.auto;
+package com.radiodns.auto.service;
 
 import android.content.Intent;
 import android.media.session.PlaybackState;
@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.text.TextUtils;
 import android.util.Log;
+
+import com.radiodns.StateUpdatesMessages;
 
 public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
 
@@ -19,7 +21,7 @@ public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
     public void onPlayFromMediaId(String mediaId, Bundle extras) {
         Log.i("[" + this.getClass().getName() + "]", "ON onPlayFromMediaId");
         autoService.setCurrentMediaID(mediaId);
-        autoService.updateState("PLAYING", PlaybackState.STATE_BUFFERING);
+        autoService.updateState(StateUpdatesMessages.PLAY, PlaybackState.STATE_BUFFERING);
     }
 
     @Override
@@ -37,33 +39,33 @@ public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
     @Override
     public void onPlay() {
         Log.i("[" + this.getClass().getName() + "]", "ON PLAY");
-        autoService.updateState("PLAYING", PlaybackState.STATE_PLAYING);
+        autoService.updateState(StateUpdatesMessages.PLAY, PlaybackState.STATE_PLAYING);
     }
 
     @Override
     public void onPause() {
         Log.i("[" + this.getClass().getName() + "]", "ON PAUSE");
-        autoService.updateState("PAUSED", PlaybackState.STATE_PAUSED);
+        autoService.updateState(StateUpdatesMessages.PAUSE, PlaybackState.STATE_PAUSED);
     }
 
     @Override
     public void onStop() {
         Log.i("[" + this.getClass().getName() + "]", "ON STOP");
-        autoService.updateState("STOPPED", PlaybackState.STATE_STOPPED);
+        autoService.updateState(StateUpdatesMessages.STOP, PlaybackState.STATE_STOPPED);
     }
 
     @Override
     public void onSkipToPrevious() {
         Log.i("[" + this.getClass().getName() + "]", "ON PREVIOUS");
         autoService.setCurrentMediaID(autoService.getPreviousMediaID());
-        autoService.updateState("PREVIOUS", PlaybackState.STATE_BUFFERING);
+        autoService.updateState(StateUpdatesMessages.PREVIOUS, PlaybackState.STATE_BUFFERING);
     }
 
     @Override
     public void onSkipToNext() {
         Log.i("[" + this.getClass().getName() + "]", "ON NEXT");
         autoService.setCurrentMediaID(autoService.getNextMediaID());
-        autoService.updateState("NEXT", PlaybackState.STATE_BUFFERING);
+        autoService.updateState(StateUpdatesMessages.NEXT, PlaybackState.STATE_BUFFERING);
     }
 
     @Override

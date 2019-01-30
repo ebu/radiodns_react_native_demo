@@ -1,4 +1,12 @@
 <resources>
     <string name="app_name">RadioDns</string>
     <string name="error_media_format_unsuported">This station\'s stream format is not supported.</string>
+    <string name="label_stop">Stop</string>
+    <string name="label_pause">Pause</string>
+    <string name="label_play">Play</string>
+    <string name="label_play_pause">Play and pause toggle</string>
+    <string name="label_previous">Previous track</string>
+    <string name="label_next">Next track</string>
+    <string name="notif_channel_name">RadioDNS demonstrator</string>
+    <string name="notif_channel_desc">This is the notification channel for the RadioDNS mobile demonstrator</string>
 </resources>

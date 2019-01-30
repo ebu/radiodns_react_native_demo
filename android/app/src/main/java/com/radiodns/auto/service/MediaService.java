@@ -1,9 +1,10 @@
-package com.radiodns.auto;
+package com.radiodns.auto.service;
 
 import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -19,10 +20,12 @@ import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
+import com.radiodns.MainActivity;
 import com.radiodns.R;
+import com.radiodns.auto.RadioDNSAutoModule;
 import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.database.RadioDNSDatabase;
-import com.radiodns.auto.module.RadioDNSAutoModule;
+import com.radiodns.auto.messages.AutoServiceMessages;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -39,15 +42,10 @@ public class MediaService extends MediaBrowserServiceCompat {
     // Android Room database connection.
     private RadioDNSDatabase db;
 
-    // State builder for updating state of media session.
-    private PlaybackStateCompat.Builder stateBuilder;
-
     // Id (url) of the media currently being played.
     private String currentMediaID;
     private String previousMediaID;
     private String nextMediaID;
-
-    private Thread updateTask;
 
     // List of activities that are bound to this service and registered to get Messages form this
     // service.
@@ -90,9 +88,10 @@ public class MediaService extends MediaBrowserServiceCompat {
                     service.setMediaSessionState(PlaybackState.STATE_BUFFERING);
                     break;
                 case AutoServiceMessages.UPDATE_MEDIA_STATE_TO_ERROR:
-                    service.stateBuilder.setState(PlaybackState.STATE_ERROR, 0, 0);
-                    service.stateBuilder.setErrorMessage(1, service.getApplicationContext().getResources().getString(R.string.error_media_format_unsuported));
-                    service.session.setPlaybackState(service.stateBuilder.build());
+                    PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder();
+                    stateBuilder.setState(PlaybackState.STATE_ERROR, 0, 0);
+                    stateBuilder.setErrorMessage(1, service.getApplicationContext().getResources().getString(R.string.error_media_format_unsuported));
+                    service.session.setPlaybackState(stateBuilder.build());
                 default:
                     super.handleMessage(msg);
             }
@@ -119,15 +118,13 @@ public class MediaService extends MediaBrowserServiceCompat {
         db = Room.databaseBuilder(getApplicationContext(), RadioDNSDatabase.class, "RadioDNSAuto-db").allowMainThreadQueries().build();
 
         session = new MediaSessionCompat(this, "RADIODNS_MEDIA_COMPAT_SESSION_TAG");
-        stateBuilder = new PlaybackStateCompat.Builder();
-
-        session.setActive(true);
         setSessionToken(session.getSessionToken());
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
         setMediaSessionState(PlaybackState.STATE_BUFFERING);
 
         session.setCallback(new MediaSessionEventCallback(this));
+        session.setActive(true);
     }
 
     @Override
@@ -148,14 +145,15 @@ public class MediaService extends MediaBrowserServiceCompat {
 
         // return null;
         //}
+
         return new BrowserRoot(MEDIA_ROOT, null);
     }
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
 
         if (MEDIA_ROOT.equals(parentId)) {
+            List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
             mediaItems.add(new MediaBrowserCompat.MediaItem(
                     new MediaMetadataCompat.Builder()
                             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ROOT_ID)
@@ -163,22 +161,12 @@ public class MediaService extends MediaBrowserServiceCompat {
                             .build().getDescription(),
                     MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
+            result.sendResult(mediaItems);
         } else {
-            List<AutoNode> nodes = db.autoNodeDAO().loadChildren(parentId);
-            for (AutoNode node : nodes) {
-                mediaItems.add(new MediaBrowserCompat.MediaItem(
-                        new MediaMetadataCompat.Builder()
-                                .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, node.key)
-                                .putString(MediaMetadataCompat.METADATA_KEY_TITLE, node.value)
-                                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
-                                .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, node.imageURI)
-                                .build().getDescription(),
-                        node.streamURI != null ? MediaBrowserCompat.MediaItem.FLAG_PLAYABLE : MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-                ));
-            }
-        }
+            result.detach();
 
-        result.sendResult(mediaItems);
+            new LoadChildrenTask(db, parentId, result).execute();
+        }
     }
 
     public void updateState(String state, int iState) {
@@ -209,6 +197,8 @@ public class MediaService extends MediaBrowserServiceCompat {
                         .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
                         .build());
 
+        setMediaSessionState(iState);
+
         Message msg = Message.obtain(null, AutoServiceMessages.SEND_NEW_PLAYER_STATE_EVENT);
         Bundle data = new Bundle();
         data.putString("CHANNEL_ID", currentMediaID);
@@ -216,8 +206,6 @@ public class MediaService extends MediaBrowserServiceCompat {
         msg.setData(data);
 
         sendMessage(msg);
-
-        setMediaSessionState(iState);
     }
 
     public void sendPlayRandom() {
@@ -235,10 +223,16 @@ public class MediaService extends MediaBrowserServiceCompat {
     }
 
     public void setMediaSessionState(int state) {
-        long actions = PlaybackState.ACTION_PLAY
-                | PlaybackState.ACTION_PAUSE
-                | PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
+        long actions = PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
                 | PlaybackState.ACTION_PLAY_FROM_SEARCH;
+
+        if (state == PlaybackState.STATE_PLAYING) {
+            actions |= PlaybackState.ACTION_PAUSE;
+        }
+
+        if (state == PlaybackState.STATE_PAUSED || state == PlaybackState.STATE_STOPPED || state == PlaybackState.STATE_BUFFERING) {
+            actions |= PlaybackState.ACTION_PLAY;
+        }
 
         if (nextMediaID != null) {
             actions |= PlaybackState.ACTION_SKIP_TO_NEXT;
@@ -246,7 +240,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         if (previousMediaID != null) {
             actions |= PlaybackState.ACTION_SKIP_TO_PREVIOUS;
         }
-
+        PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder();
         stateBuilder.setActions(actions);
         stateBuilder.setState(state, 0, 1);
         session.setPlaybackState(stateBuilder.build());

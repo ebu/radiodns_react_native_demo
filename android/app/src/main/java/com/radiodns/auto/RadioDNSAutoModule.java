@@ -1,4 +1,4 @@
-package com.radiodns.auto.module;
+package com.radiodns.auto;
 
 import android.arch.persistence.room.Room;
 import android.content.ComponentName;
@@ -18,8 +18,8 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
-import com.radiodns.auto.MediaService;
-import com.radiodns.auto.AutoServiceMessages;
+import com.radiodns.auto.service.MediaService;
+import com.radiodns.auto.messages.AutoServiceMessages;
 import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.database.RadioDNSDatabase;
 

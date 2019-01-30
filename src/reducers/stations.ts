@@ -1,6 +1,6 @@
-import MusicControl from "react-native-music-control";
 import {Action} from "redux";
 import {Station} from "../models/Station";
+import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
 import {displayAudioPlayerNotifControl} from "../utilities";
 
 /**
@@ -105,17 +105,12 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
             }, getIndexFromActiveStation);
         case SET_LOADING:
             if (!state.error) {
-                MusicControl.updatePlayback({
-                    state: action.loading ? MusicControl.STATE_BUFFERING : MusicControl.STATE_PLAYING,
-                });
+                RadioDNSControlNotification.updateNotifState(!action.loading, true, true);
             }
             return {...state, loading: action.loading, error: false};
         case SET_PAUSED:
             if (!state.error) {
-                displayAudioPlayerNotifControl(state.activeStation);
-                MusicControl.updatePlayback({
-                    state: action.paused ? MusicControl.STATE_PAUSED : MusicControl.STATE_PLAYING,
-                });
+                RadioDNSControlNotification.updateNotifState(!action.paused, true, true);
             }
             return {...state, paused: action.paused};
         case SET_ACTIVE_NEXT:
@@ -133,9 +128,7 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
         case SET_VOLUME:
             return {...state, volume: action.volume};
         case SET_ERROR:
-            MusicControl.updatePlayback({
-                state: MusicControl.STATE_ERROR,
-            });
+            RadioDNSControlNotification.updateNotifState(false, true, true);
             return {...state, error: action.error};
         case SET_VISIBILITY:
             return {

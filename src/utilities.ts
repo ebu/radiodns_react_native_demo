@@ -1,5 +1,5 @@
-import MusicControl from "react-native-music-control";
 import {Logo, Station} from "./models/Station";
+import RadioDNSControlNotification from "./native-modules/RadioDNSControlNotification";
 
 /**
  * Returns the media to be displayed for the station (the bigger one). This is really an example implementation and one should come with
@@ -25,14 +25,23 @@ export const isWebScheme: (url: string) => boolean = (url) =>
  * @param station: The name of the station.
  */
 export const displayAudioPlayerNotifControl = (station: Station | null) => {
-    MusicControl.setNowPlaying({
-        title: station ? station.mediumName : "",
-        artwork: getMedia(station ? station.stationLogos : []),
-        description: "",
-    });
-    MusicControl.updatePlayback({
-        state: MusicControl.STATE_PLAYING,
-    });
+    if (!station) {
+        return;
+    }
+    RadioDNSControlNotification.buildNotification(
+        station.mediumName,
+        "Powered by RadioDNS",
+        getMedia(station ? station.stationLogos : []),
+    );
+    RadioDNSControlNotification.updateNotifState(true, true, true);
+    // MusicControl.setNowPlaying({
+    //     title: station ? station.mediumName : "",
+    //     artwork: getMedia(station ? station.stationLogos : []),
+    //     description: "",
+    // });
+    // MusicControl.updatePlayback({
+    //     state: MusicControl.STATE_PLAYING,
+    // });
 };
 
 /**
@@ -43,7 +52,7 @@ export const noop = () => {};
 /**
  * [ANDROID ONLY] Cancels the local notification (dismiss it).
  */
-export const cancelAudioPlayerNotifControl = () => MusicControl.resetNowPlaying();
+export const cancelAudioPlayerNotifControl = () => {}; // MusicControl.resetNowPlaying();
 
 /**
  * Assuming the two parameters are sentences composed of words separated with blanks, counts the

@@ -1,4 +1,4 @@
-package com.radiodns.auto.module;
+package com.radiodns.exitApp;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class RadioDNSAutoPackage implements ReactPackage {
+public class RadioDNSExitAppPackage implements ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
@@ -20,7 +20,7 @@ public class RadioDNSAutoPackage implements ReactPackage {
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new RadioDNSAutoModule(reactContext));
+        modules.add(new RadioDNSExitAppModule(reactContext));
 
         return modules;
     }

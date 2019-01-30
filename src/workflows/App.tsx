@@ -1,6 +1,5 @@
 import * as React from "react";
 import {AppState, AppStateStatus} from "react-native";
-import MusicControl from "react-native-music-control";
 // @ts-ignore - createAppContainer does exists in react navigation but typings are not up to date.
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
@@ -10,6 +9,7 @@ import {BackgroundController} from "../components/media/BackgroundController";
 import {Player} from "../components/media/Player";
 import {SERVICE_PROVIDERS} from "../constants";
 import * as RadioDNSAuto from "../native-modules/RadioDNSAuto";
+import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
 import {store} from "../reducers/root-reducer";
 import {setServiceProviders} from "../reducers/service-providers";
 import {getAllSPIs, SPICacheContainer} from "../services/SPICache";
@@ -81,7 +81,7 @@ export default class App extends React.Component {
     private handleAppStateChange = (nextAppState: AppStateStatus) => {
         // When user explicitly kills the app, cancel local notification.
         if (nextAppState === "inactive") {
-            MusicControl.stopControl()
+            RadioDNSControlNotification.dismissNotification();
         }
     };
 

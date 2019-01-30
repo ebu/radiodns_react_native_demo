@@ -1,12 +1,11 @@
 import * as React from "react"
 import {DeviceEventEmitter} from "react-native";
-import MusicControl from "react-native-music-control";
-import {Command} from "react-native-music-control/lib/types";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {Station} from "../../models/Station";
 import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
 import {Event, Signal} from "../../native-modules/RadioDNSAuto";
+import RadioDNSExitApp from "../../native-modules/RadioDNSExitApp";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {
     setActiveStation,
@@ -43,31 +42,32 @@ class BackgroundControllerContainer extends React.Component<Props> {
 
     public componentDidMount() {
         // SETUP MUSIC CONTROLS
-        MusicControl.enableControl("play", true);
-        MusicControl.enableControl("pause", true);
-        MusicControl.enableControl("nextTrack", true);
-        MusicControl.enableControl("previousTrack", true);
-        MusicControl.enableControl("volume", true);
-        MusicControl.enableControl("closeNotification", true, {when: "always"});
 
-        MusicControl.on(Command.play, () => this.props.setPausedState!(false));
-        MusicControl.on(Command.pause, () => this.props.setPausedState!(true));
-        MusicControl.on(Command.nextTrack, this.props.setPreviousStation!);
-        MusicControl.on(Command.previousTrack, this.props.setNextStation!);
-        MusicControl.on(Command.volume, (volume: number) => this.props.setVolume!(volume));
-        MusicControl.on(Command.closeNotification, () => this.props.setPausedState!(true));
+        // MusicControl.on(Command.play, () => this.props.setPausedState!(false));
+        // MusicControl.on(Command.pause, () => this.props.setPausedState!(true));
+        // MusicControl.on(Command.nextTrack, this.props.setPreviousStation!);
+        // MusicControl.on(Command.previousTrack, this.props.setNextStation!);
+        // MusicControl.on(Command.volume, (volume: number) => this.props.setVolume!(volume));
+        // MusicControl.on(Command.closeNotification, () => this.props.setPausedState!(true));
 
         // SETUP AUTO CONTROLS
         DeviceEventEmitter.addListener(Event.UPDATE_STATE, (e: {
             STATE: "PLAYING" | "PAUSED" | "STOPPED" | "PREVIOUS" | "NEXT",
-            CHANNEL_ID: string,
+            CHANNEL_ID?: string,
         }) => {
             switch (e.STATE) {
                 case "PLAYING":
-                    this.playFromId(e.CHANNEL_ID);
+                    if (e.CHANNEL_ID) {
+                        this.playFromId(e.CHANNEL_ID);
+                    } else {
+                        this.props.setPausedState!(false);
+                    }
                     break;
                 case "STOPPED":
+                    RadioDNSExitApp.exitApp();
+                    break;
                 case "PAUSED":
+                    console.log("PAUSE");
                     this.props.setPausedState!(true);
                     break;
                 case "PREVIOUS":

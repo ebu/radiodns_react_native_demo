@@ -3,6 +3,9 @@
 This demonstrator uses RadioDns metadata to operate an ip radio application. Currently we only support the development 
 on Android but iOS is to come soon.
 
+## Architecture
+The general architecture as well as the technologies used are described in the [ARCHITECTURE.md](ARCHITECTURE.md) file.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing
