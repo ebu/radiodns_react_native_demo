@@ -54,6 +54,7 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     // Target for clients to send message to IncomingHandler.
     public Messenger mMessenger;
+
     @Override
     public IBinder onBind(Intent intent) {
         // If the bind request comes from our Native Module (RadioDNSAutoModule class) use the binder
@@ -101,26 +102,14 @@ public class MediaService extends MediaBrowserServiceCompat {
         // return null;
         //}
 
-        return new BrowserRoot(MEDIA_ROOT, null);
+        return new BrowserRoot(MEDIA_ROOT_ID, null);
     }
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-        if (MEDIA_ROOT.equals(parentId)) {
-            List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
-            mediaItems.add(new MediaBrowserCompat.MediaItem(
-                    new MediaMetadataCompat.Builder()
-                            .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ROOT_ID)
-                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, getApplicationContext().getResources().getString(R.string.menu_by_service_provider))
-                            .build().getDescription(),
-                    MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
-            ));
-            result.sendResult(mediaItems);
-        } else {
-            result.detach();
+        result.detach();
 
-            new LoadChildrenTask(db, parentId, result).execute();
-        }
+        new LoadChildrenTask(db, parentId, result).execute();
     }
 
     /**
@@ -128,7 +117,8 @@ public class MediaService extends MediaBrowserServiceCompat {
      * session's PlaybackState and sets the current station metadata for the session.
      *
      * Sends the new state to the React Native module.
-     * @param state: String state that will update the JS side.
+     *
+     * @param state:  String state that will update the JS side.
      * @param iState: integer State that will update the PlayBackState of the session.
      */
     public void updateState(String state, int iState) {
@@ -139,7 +129,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         if (playlist.size() >= 3) {
             Iterator<AutoNode> i = playlist.iterator();
             int index = 0;
-            while(i.hasNext()) {
+            while (i.hasNext()) {
                 if (i.next().key.equals(node.key)) {
                     break;
                 }
@@ -164,7 +154,7 @@ public class MediaService extends MediaBrowserServiceCompat {
 
         Message msg = Message.obtain(null, AutoServiceMessages.SEND_NEW_PLAYER_STATE_EVENT);
         Bundle data = new Bundle();
-        data.putString("CHANNEL_ID", currentMediaID);
+        data.putString("CHANNEL_ID", node.streamURI);
         data.putString("STATE", state);
         msg.setData(data);
 
@@ -194,6 +184,7 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     /**
      * Sets the session's playback state.
+     *
      * @param state: The playback state.
      */
     public void setMediaSessionState(int state) {
@@ -222,6 +213,7 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     /**
      * Sends a message to all client registered to this service.
+     *
      * @param msg: the message to send
      */
     private void sendMessage(Message msg) {

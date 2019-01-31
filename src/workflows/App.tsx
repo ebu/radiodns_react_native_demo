@@ -8,6 +8,7 @@ import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBou
 import {Player} from "../components/media/Player";
 import {RadioDNSNativeModulesSyncComponent} from "../components/RadioDNSNativeModulesSyncComponent";
 import {SERVICE_PROVIDERS} from "../constants";
+import {Station} from "../models/Station";
 import RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
 import {store} from "../reducers/root-reducer";
@@ -56,7 +57,27 @@ export default class App extends React.Component {
 
         // Add SPI files to the app's state.
         const spiCacheResponses = await getAllSPIs(SERVICE_PROVIDERS);
+
+        // Add root nodes to browse by genre and by service provider.
+        RadioDNSAuto.addNode(
+            "root",
+            "byServiceProviderRoot",
+            "By service provider",
+            "",
+            null,
+        );
+
+        RadioDNSAuto.addNode(
+            "root",
+            "byGenreRoot",
+            "By genre",
+            "",
+            null,
+        );
+
         spiCacheResponses.forEach(this.cacheForAndroidAuto);
+        this.parseAndCacheGenresForAndroidAuto(spiCacheResponses);
+
         RadioDNSAuto.refresh();
         store.dispatch(setServiceProviders(spiCacheResponses));
     }
@@ -85,6 +106,45 @@ export default class App extends React.Component {
         }
     };
 
+    private parseAndCacheGenresForAndroidAuto = (spiCacheResponses: SPICacheContainer[]) => {
+        const genres: { [key: string]: Station[] } = {};
+        spiCacheResponses.reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Station[])
+            .reduce((acc, station) => acc.concat(
+                station.genre.map((genre) => ({genre: genre.text.replace("\"", "").trim(), station})),
+            ), [] as Array<{ station: Station, genre: string }>)
+            .sort((a, b) => {
+                if (a.genre < b.genre) {
+                    return -1;
+                }
+                if (a.genre > b.genre) {
+                    return 1;
+                }
+                return 0;
+            })
+            .filter((a) => a.station.bearer.id)
+            .forEach((a) => genres[a.genre] ? genres[a.genre].push(a.station) : genres[a.genre] = [a.station]);
+
+        Object.keys(genres).forEach((genre) => {
+            RadioDNSAuto.addNode(
+                "byGenreRoot",
+                genre,
+                genre,
+                "",
+                null,
+            );
+            genres[genre].forEach((station) => {
+                const mediaUri = getMedia(station.stationLogos);
+                RadioDNSAuto.addNode(
+                    genre,
+                    genre + station.bearer.id,
+                    station.shortName,
+                    mediaUri,
+                    station.bearer.id,
+                );
+            });
+        });
+    };
+
     /**
      * Sets the provided cache response in the cache of the native Android Auto module. Later when in Auto mode
      * the MediaBrowserService will query this cache for a list of nodes to render for the user.
@@ -95,7 +155,7 @@ export default class App extends React.Component {
             return;
         }
         RadioDNSAuto.addNode(
-            "root",
+            "byServiceProviderRoot",
             cacheResponse.spUrl,
             cacheResponse.serviceProvider.shortName.text,
             getMedia(cacheResponse.serviceProvider.mediaDescription),

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">RadioDns</string>
     <string name="error_media_format_unsuported">This station\'s stream format is not supported.</string>
-    <string name="menu_by_service_provider">By service provider</string>
+    <string name="menu_android_auto">RadioDNS</string>
     <string name="label_stop">Stop</string>
     <string name="label_pause">Pause</string>
     <string name="label_play">Play</string>
