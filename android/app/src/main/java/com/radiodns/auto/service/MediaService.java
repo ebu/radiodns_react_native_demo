@@ -4,9 +4,7 @@ import android.arch.persistence.room.Room;
 import android.content.Intent;
 import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
-import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -18,10 +16,9 @@ import android.support.v4.media.MediaBrowserServiceCompat;
 import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
-import android.util.Log;
 
-import com.radiodns.MainActivity;
 import com.radiodns.R;
+import com.radiodns.auto.Constants;
 import com.radiodns.auto.RadioDNSAutoModule;
 import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.database.RadioDNSDatabase;
@@ -49,7 +46,7 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     // List of activities that are bound to this service and registered to get Messages form this
     // service.
-    private ArrayList<Messenger> mClients = new ArrayList<>();
+    private ArrayList<Messenger> clients = new ArrayList<>();
 
     // Constants for defining the root of the android auto render tree.
     private final String MEDIA_ROOT = "MEDIA_ROOT";
@@ -57,47 +54,6 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     // Target for clients to send message to IncomingHandler.
     public Messenger mMessenger;
-
-    // Incoming Message handler.
-    static class IncomingHandler extends Handler {
-        private MediaService service;
-
-        IncomingHandler(MediaService service) {
-            this.service = service;
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-                case AutoServiceMessages.REGISTER_CLIENT:
-                    service.getmClients().add(msg.replyTo);
-                    break;
-                case AutoServiceMessages.UNREGISTER_CLIENT:
-                    service.getmClients().remove(msg.replyTo);
-                    break;
-                case AutoServiceMessages.RESET_DB:
-                    service.db.autoNodeDAO().nukeTable();
-                    break;
-                case AutoServiceMessages.REFRESH_FROM_DB:
-                    Log.i("[" + this.getClass().getName() + "]", "ON refresh from db. ");
-                    break;
-                case AutoServiceMessages.UPDATE_MEDIA_STATE_TO_PLAYING:
-                    service.setMediaSessionState(PlaybackState.STATE_PLAYING);
-                    break;
-                case AutoServiceMessages.UPDATE_MEDIA_STATE_TO_BUFFERING:
-                    service.setMediaSessionState(PlaybackState.STATE_BUFFERING);
-                    break;
-                case AutoServiceMessages.UPDATE_MEDIA_STATE_TO_ERROR:
-                    PlaybackStateCompat.Builder stateBuilder = new PlaybackStateCompat.Builder();
-                    stateBuilder.setState(PlaybackState.STATE_ERROR, 0, 0);
-                    stateBuilder.setErrorMessage(1, service.getApplicationContext().getResources().getString(R.string.error_media_format_unsuported));
-                    service.session.setPlaybackState(stateBuilder.build());
-                default:
-                    super.handleMessage(msg);
-            }
-        }
-    }
-
     @Override
     public IBinder onBind(Intent intent) {
         // If the bind request comes from our Native Module (RadioDNSAutoModule class) use the binder
@@ -105,7 +61,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         // default implementation (should we omit to do that, android auto would have a message binder
         // instead of the media browser its expects to have).
         if (intent.getAction() != null && intent.getAction().equals(RadioDNSAutoModule.class.getName())) {
-            mMessenger = new Messenger(new IncomingHandler(this));
+            mMessenger = new Messenger(new IncomingMessageHandler(this));
             return mMessenger.getBinder();
         }
         return super.onBind(intent);
@@ -115,9 +71,9 @@ public class MediaService extends MediaBrowserServiceCompat {
     public void onCreate() {
         super.onCreate();
 
-        db = Room.databaseBuilder(getApplicationContext(), RadioDNSDatabase.class, "RadioDNSAuto-db").allowMainThreadQueries().build();
+        db = Room.databaseBuilder(getApplicationContext(), RadioDNSDatabase.class, Constants.DATABASE_NAME).allowMainThreadQueries().build();
 
-        session = new MediaSessionCompat(this, "RADIODNS_MEDIA_COMPAT_SESSION_TAG");
+        session = new MediaSessionCompat(this, Constants.RADIODNS_MEDIA_COMPAT_SESSION_TAG);
         setSessionToken(session.getSessionToken());
         session.setFlags(MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS | MediaSessionCompat.FLAG_HANDLES_TRANSPORT_CONTROLS);
 
@@ -134,7 +90,6 @@ public class MediaService extends MediaBrowserServiceCompat {
         session.release();
     }
 
-    // LAYOUT
     @Nullable
     @Override
     public BrowserRoot onGetRoot(@NonNull String clientPackageName, int clientUid, @Nullable Bundle rootHints) {
@@ -151,13 +106,12 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     @Override
     public void onLoadChildren(@NonNull String parentId, @NonNull Result<List<MediaBrowserCompat.MediaItem>> result) {
-
         if (MEDIA_ROOT.equals(parentId)) {
             List<MediaBrowserCompat.MediaItem> mediaItems = new ArrayList<>();
             mediaItems.add(new MediaBrowserCompat.MediaItem(
                     new MediaMetadataCompat.Builder()
                             .putString(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, MEDIA_ROOT_ID)
-                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, "RadioDNS auto demo")
+                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, getApplicationContext().getResources().getString(R.string.menu_by_service_provider))
                             .build().getDescription(),
                     MediaBrowserCompat.MediaItem.FLAG_BROWSABLE
             ));
@@ -169,10 +123,19 @@ public class MediaService extends MediaBrowserServiceCompat {
         }
     }
 
+    /**
+     * Updates the state of the currently played station. Sets the available actions on the
+     * session's PlaybackState and sets the current station metadata for the session.
+     *
+     * Sends the new state to the React Native module.
+     * @param state: String state that will update the JS side.
+     * @param iState: integer State that will update the PlayBackState of the session.
+     */
     public void updateState(String state, int iState) {
         AutoNode node = db.autoNodeDAO().find(currentMediaID);
         List<AutoNode> playlist = db.autoNodeDAO().loadChildren(node.childOf);
 
+        // indexOf doesn't work so by hand
         if (playlist.size() >= 3) {
             Iterator<AutoNode> i = playlist.iterator();
             int index = 0;
@@ -208,11 +171,18 @@ public class MediaService extends MediaBrowserServiceCompat {
         sendMessage(msg);
     }
 
+    /**
+     * Sends to the JS side a command to play a random station.
+     */
     public void sendPlayRandom() {
         Message msg = Message.obtain(null, AutoServiceMessages.SEND_PLAY_RANDOM);
         sendMessage(msg);
     }
 
+    /**
+     * Sends to the JS side a command to play the station that has the name the most related to the
+     * search string.
+     */
     public void sendPlayFromSearchString(String searchString) {
         Message msg = Message.obtain(null, AutoServiceMessages.SEND_PLAY_FROM_SEARCH_STRING);
         Bundle data = new Bundle();
@@ -222,6 +192,10 @@ public class MediaService extends MediaBrowserServiceCompat {
         sendMessage(msg);
     }
 
+    /**
+     * Sets the session's playback state.
+     * @param state: The playback state.
+     */
     public void setMediaSessionState(int state) {
         long actions = PlaybackState.ACTION_PLAY_FROM_MEDIA_ID
                 | PlaybackState.ACTION_PLAY_FROM_SEARCH;
@@ -246,6 +220,21 @@ public class MediaService extends MediaBrowserServiceCompat {
         session.setPlaybackState(stateBuilder.build());
     }
 
+    /**
+     * Sends a message to all client registered to this service.
+     * @param msg: the message to send
+     */
+    private void sendMessage(Message msg) {
+        for (Messenger client : clients) {
+            try {
+                client.send(msg);
+            } catch (RemoteException e) {
+                clients.remove(client);
+                e.printStackTrace();
+            }
+        }
+    }
+
     public MediaSessionCompat getSession() {
         return session;
     }
@@ -262,19 +251,11 @@ public class MediaService extends MediaBrowserServiceCompat {
         return nextMediaID;
     }
 
-    public ArrayList<Messenger> getmClients() {
-        return mClients;
+    public ArrayList<Messenger> getClients() {
+        return clients;
     }
 
-    private void sendMessage(Message msg) {
-        for (Messenger client : mClients) {
-            try {
-                client.send(msg);
-            } catch (RemoteException e) {
-                mClients.remove(client);
-                e.printStackTrace();
-            }
-        }
+    public RadioDNSDatabase getDb() {
+        return db;
     }
-
 }

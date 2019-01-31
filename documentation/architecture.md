@@ -11,7 +11,6 @@ native mobile that is running:
 - One should always test its components on all mobile operating system to
 ensure that they are rendered correctly on each one.
 - One should always be careful of excessive CPU usage and memory management.
-- One should always remember to cancel any asynchronous task when dismounting a react component.
 - Upon retrieving data from network one should always implement a caching system for this data as network
 queries are an expensive task in terms of battery. 
 
@@ -80,10 +79,16 @@ Find more about [Redux principles here](https://redux.js.org/introduction/core-c
 
 For more information about Redux's Flux inspiration [go here](https://redux.js.org/introduction/prior-art#flux).
 
-### A Reducer to control the player
+## Application implementation with Redux
 
-![alt text](images/redux_in_demonstrator.png "Redux in demonstrator")
+![alt text](images/app_architecture.png "Redux in demonstrator")
 
-The demonstrator uses redux to control the state of the player. This includes the list of the stations available for the
-selected service provider, the currently listened to station, if the stream is paused, loading or in an error state and 
-at what volume the media should play. Then every react component related to the stream or the player is updated and dispatch an action from and to this reducer.
+Following the Redux design pattern, we hold only once source of truth for the state of the application.
+
+Redux store contains
+the available Service Providers and their stations, the station currently tuned in if any, etc. React components then
+update accordingly to the current state of the app. Any component can also fire an action that will lead to a new state
+for the app. And the cycle continues.
+
+You'll notice the "Synchronization Components". Theses components are used to synchronize the state of the application
+and receive updates to/from outside of react native.

@@ -14,6 +14,10 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.radiodns.StateUpdatesMessages;
 
+/**
+ * React native module that handle a notifications that provides media controls such as
+ * play, pause, next and previous station/song/stream/etc.
+ */
 public class RadioDNSControlNotificationModule extends ReactContextBaseJavaModule {
 
     private ReactContext reactContext;
@@ -23,6 +27,8 @@ public class RadioDNSControlNotificationModule extends ReactContextBaseJavaModul
     private String imgUrl;
 
     private MediaNotificationManager mediaNotificationManager;
+
+    // Broadcast receiver to handle intents broadcasted from the notification.
     private final BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -57,18 +63,34 @@ public class RadioDNSControlNotificationModule extends ReactContextBaseJavaModul
         return "RadioDNSControlNotification";
     }
 
+    /**
+     * Prepares the notification's display data.
+     * @param title: Sets the title of the notification.
+     * @param subtitle: Sets the subtitle of the notification.
+     * @param imgUrl: Sets the image url of the notification.
+     */
     @ReactMethod
-    public void buildNotification(String title, String subtitle, String imgUrl) {
+    public void prepareNotification(String title, String subtitle, String imgUrl) {
         this.title = title;
         this.subtitle = subtitle;
         this.imgUrl = imgUrl;
     }
 
+    /**
+     * Displays the notification. This method should be called before the [prepareNotification] method
+     * is called at least once before.
+     *
+     * If an other notification existed before, will update it.
+     * @param playing: If the associated media is playing or is paused.
+     */
     @ReactMethod
-    public void updateNotifState(boolean playing, boolean nextEnabled, boolean previousEnabled) {
-        mediaNotificationManager.buildNotification(title, subtitle, imgUrl, playing, nextEnabled, previousEnabled);
+    public void displayNotification(boolean playing) {
+        mediaNotificationManager.buildNotification(title, subtitle, imgUrl, playing);
     }
 
+    /**
+     * Dismisses the notification.
+     */
     @ReactMethod
     public void dismissNotification() {
         mediaNotificationManager.getNotificationManager().cancel(mediaNotificationManager.NOTIFICATION_ID);

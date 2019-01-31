@@ -25,11 +25,17 @@ import com.radiodns.auto.database.RadioDNSDatabase;
 
 import javax.annotation.Nullable;
 
+/**
+ * RadioDNS Android Auto module. This module handle the android auto music playback capabilities of
+ * the demonstrator. It provides an easy way to build the android auto layout + bindings to the media
+ * controls.
+ */
 public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
 
     private Messenger mService = null;
     private boolean mBound;
 
+    // Incoming message handler class to handle communication from the MediaBrowser service and this Native Module.
     class IncomingHandler extends Handler {
 
         public IncomingHandler(Looper looper) {
@@ -69,7 +75,7 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
     public RadioDNSAutoModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
-        db = Room.databaseBuilder(reactContext, RadioDNSDatabase.class, "RadioDNSAuto-db").build();
+        db = Room.databaseBuilder(reactContext, RadioDNSDatabase.class, Constants.DATABASE_NAME).build();
         mConnection = new ServiceConnection() {
             public void onServiceConnected(ComponentName className, IBinder service) {
                 mService = new Messenger(service);
@@ -158,7 +164,7 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
 
     /**
      * Sends an signal to the MediaService. A signal is just a number that has a certain meaning for
-     * the application. Refer to #AutoServiceMessages for a list of integers that can be used as signals.
+     * the application. Refer to [AutoServiceMessages] for a list of integers that can be used as signals.
      */
     @ReactMethod
     public void sendSignal(Integer signal) {

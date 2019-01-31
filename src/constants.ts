@@ -4,7 +4,8 @@ export const SPI_3_1 = "/radiodns/spi/3.1/SI.xml";
 // Max age to cache an SPI file. In milliseconds.
 export const CACHE_SPI_MAX_AGE = 21600000;
 
-// List of service providers.
+// List of service providers. Currently there is no way to retrieve a list of the available service providers with the
+// RadioDNS manager so we had to hardcode them.
 export const SERVICE_PROVIDERS = [
     "https://atorf.spi.radio.ebu.io",
     "https://bertbf.spi.radio.ebu.io",

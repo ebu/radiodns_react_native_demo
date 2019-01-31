@@ -5,10 +5,6 @@ import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../colors";
 import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setPausedState} from "../../reducers/stations";
-import {
-    cancelAudioPlayerNotifControl,
-    displayAudioPlayerNotifControl,
-} from "../../utilities";
 import {IconButton} from "../buttons/IconButton";
 import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
 import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
@@ -55,13 +51,8 @@ class MediaControlsContainer extends React.Component<Props> {
 
     private onPausePlayButtonPress = () => {
         const paused = !this.props.paused;
-        paused
-            ? cancelAudioPlayerNotifControl()
-            : this.updateControlNotif();
         this.props.setPausedState!(paused);
     };
-
-    private updateControlNotif = () => displayAudioPlayerNotifControl(this.props.currentSteam!);
 }
 
 export const MediaControls = connect(

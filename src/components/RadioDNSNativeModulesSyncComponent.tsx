@@ -2,11 +2,12 @@ import * as React from "react"
 import {DeviceEventEmitter} from "react-native";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Station} from "../../models/Station";
-import * as RadioDNSAuto from "../../native-modules/RadioDNSAuto";
-import {Event, Signal} from "../../native-modules/RadioDNSAuto";
-import RadioDNSExitApp from "../../native-modules/RadioDNSExitApp";
-import {RootReducerState} from "../../reducers/root-reducer";
+import {Station} from "../models/Station";
+import * as RadioDNSAuto from "../native-modules/RadioDNSAuto";
+import {Event, Signal} from "../native-modules/RadioDNSAuto";
+import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
+import RadioDNSExitApp from "../native-modules/RadioDNSExitApp";
+import {RootReducerState} from "../reducers/root-reducer";
 import {
     setActiveStation,
     setNextStation,
@@ -14,14 +15,14 @@ import {
     setPreviousStation,
     setStationPlaylist,
     setVolume,
-} from "../../reducers/stations";
-import {SPICacheContainer} from "../../services/SPICache";
-import {commonWords, shuffleArray} from "../../utilities";
+} from "../reducers/stations";
+import {SPICacheContainer} from "../services/SPICache";
+import {commonWords, getMedia, shuffleArray} from "../utilities";
 
 interface Props {
     // injected props
     serviceProviders?: SPICacheContainer[];
-    currentSteam?: Station | null;
+    activeStation?: Station | null;
     paused?: boolean;
     loading?: boolean;
     error?: boolean;
@@ -38,19 +39,9 @@ interface Props {
 /**
  * Control notification listener. Will listen to commands made in the control notification an will dispatch redux actions accordingly.
  */
-class BackgroundControllerContainer extends React.Component<Props> {
+class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Props> {
 
     public componentDidMount() {
-        // SETUP MUSIC CONTROLS
-
-        // MusicControl.on(Command.play, () => this.props.setPausedState!(false));
-        // MusicControl.on(Command.pause, () => this.props.setPausedState!(true));
-        // MusicControl.on(Command.nextTrack, this.props.setPreviousStation!);
-        // MusicControl.on(Command.previousTrack, this.props.setNextStation!);
-        // MusicControl.on(Command.volume, (volume: number) => this.props.setVolume!(volume));
-        // MusicControl.on(Command.closeNotification, () => this.props.setPausedState!(true));
-
-        // SETUP AUTO CONTROLS
         DeviceEventEmitter.addListener(Event.UPDATE_STATE, (e: {
             STATE: "PLAYING" | "PAUSED" | "STOPPED" | "PREVIOUS" | "NEXT",
             CHANNEL_ID?: string,
@@ -106,6 +97,16 @@ class BackgroundControllerContainer extends React.Component<Props> {
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>): void {
+        if (prevProps.activeStation !== this.props.activeStation && !!this.props.activeStation) {
+            const {mediumName, stationLogos} = this.props.activeStation;
+            RadioDNSControlNotification.prepareNotification(mediumName, "", getMedia(stationLogos));
+        }
+
+        if (this.props.activeStation !== null) {
+            const {loading, error, paused} = this.props;
+            RadioDNSControlNotification.displayNotification(!loading && !error && !paused);
+        }
+
         if (prevProps.loading !== this.props.loading) {
             RadioDNSAuto.default.sendSignal(
                 this.props.loading
@@ -113,6 +114,7 @@ class BackgroundControllerContainer extends React.Component<Props> {
                     : Signal.UPDATE_MEDIA_STATE_TO_PLAYING,
             );
         }
+
         if (!prevProps.error && this.props.error) {
             RadioDNSAuto.default.sendSignal(Signal.UPDATE_MEDIA_STATE_TO_ERROR);
         }
@@ -139,10 +141,10 @@ class BackgroundControllerContainer extends React.Component<Props> {
     }
 }
 
-export const BackgroundController = connect(
+export const RadioDNSNativeModulesSyncComponent = connect(
     (state: RootReducerState) => ({
         serviceProviders: state.serviceProviders.serviceProviders,
-        currentSteam: state.stations.activeStation,
+        activeStation: state.stations.activeStation,
         paused: state.stations.paused,
         loading: state.stations.loading,
         error: state.stations.error,
@@ -156,4 +158,4 @@ export const BackgroundController = connect(
         setStationPlaylist: (stations: Station[]) => dispatch(setStationPlaylist(stations)),
         setActiveStation: (station: Station) => dispatch(setActiveStation(station)),
     })),
-)(BackgroundControllerContainer);
+)(RadioDNSNativeModulesSyncComponentReduxListener);

@@ -11,6 +11,9 @@ import com.radiodns.auto.database.RadioDNSDatabase;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Async task to load children of a node of the android auto tree.
+ */
 public class LoadChildrenTask extends AsyncTask<Void, Void, Void> {
 
     // Android Room database connection.
@@ -19,8 +22,10 @@ public class LoadChildrenTask extends AsyncTask<Void, Void, Void> {
     // Parent id of the node to load.
     private String parentId;
 
+    // Result object where results will be published if any.
     private MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result;
 
+    // List to hold the media items (the nodes) of the subtree that we are rendering.
     private List<MediaBrowserCompat.MediaItem> mediaItems;
 
     public LoadChildrenTask(RadioDNSDatabase db, String parentId, MediaBrowserServiceCompat.Result<List<MediaBrowserCompat.MediaItem>> result) {

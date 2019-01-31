@@ -12,8 +12,6 @@ import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.media.app.NotificationCompat.MediaStyle;
-import android.support.v4.media.session.MediaButtonReceiver;
-import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.bumptech.glide.Glide;
@@ -26,8 +24,7 @@ import java.util.concurrent.ExecutionException;
 
 
 /**
- * Keeps track of a notification and updates it automatically for a given MediaSession. This is
- * required so that the music service don't get killed during playback.
+ * Class to build and update a media controls notification.
  */
 public class MediaNotificationManager {
 
@@ -75,14 +72,30 @@ public class MediaNotificationManager {
         notificationManager.cancelAll();
     }
 
-    public void buildNotification(String title, String subtitle, String imgUrl, boolean playing, boolean nextEnabled, boolean previousEnabled) {
+    /**
+     * Builds and display a notification. If the notification was already shown, updates it.
+     *
+     * The notification responds to user interaction with the following intents:
+     * - Action: [StateUpdatesMessages.PLAY] on play button pressed.
+     * - Action: [StateUpdatesMessages.PAUSE] on pause button pressed.
+     * - Action: [StateUpdatesMessages.NEXT] on NEXT button pressed.
+     * - Action: [StateUpdatesMessages.PREVIOUS] on play PREVIOUS pressed.
+     * - Action: [MainActivity.class] on pressing on the notification.
+     * - Action: [StateUpdatesMessages.STOP] on dismissing the notification from the notification center.
+     *
+     * @param title: The title of the notification.
+     * @param subtitle: The smaller text under the title of the notification.
+     * @param imgUrl: The image art url of the currently played station/song/stream.
+     * @param playing: If the media is currently playing.
+     */
+    public void buildNotification(String title, String subtitle, String imgUrl, boolean playing) {
 
         // Create the (mandatory) notification channel when running on Android Oreo.
         if (isAndroidOOrHigher()) {
             createChannel();
         }
 
-        // Start the main activity if it isn't already running.
+        // Create intent to start main activity.
         Intent activityIntent = new Intent(context, MainActivity.class);
         activityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
@@ -90,15 +103,22 @@ public class MediaNotificationManager {
         builder.setColor(ContextCompat.getColor(context, R.color.notification_bg))
                 .setSmallIcon(R.drawable.ic_stat_image_audiotrack)
                 .setContentTitle(title)
+                // Setting intent to broadcast when pressing on the notification.
                 .setContentIntent(PendingIntent.getActivity(context, 0, activityIntent, PendingIntent.FLAG_CANCEL_CURRENT))
+                // Setting intent to broadcast when the notification was dismissed.
                 .setDeleteIntent(this.generateNotifControlIntent(StateUpdatesMessages.STOP))
                 .setContentText(subtitle)
                 // Show controls on lock screen even when user hides sensitive content.
                 .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setStyle(new MediaStyle()
+                        // Show control buttons even in compact mode.
                         .setShowActionsInCompactView(0, 1, 2)
                         .setCancelButtonIntent(this.generateNotifControlIntent(StateUpdatesMessages.STOP))
-                );
+                )
+                // Add action buttons.
+                .addAction(mPrevAction)
+                .addAction(playing ? mPauseAction : mPlayAction)
+                .addAction(mNextAction);
 
         FutureTarget<Bitmap> futureTarget = Glide.with(context)
                 .asBitmap()
@@ -113,26 +133,21 @@ public class MediaNotificationManager {
             e.printStackTrace();
         }
 
-        // If skip to next action is enabled.
-        if (nextEnabled) {
-            builder.addAction(mPrevAction);
-        }
-
-        builder.addAction(playing ? mPauseAction : mPlayAction);
-
-        // If skip to prev action is enabled.
-        if (previousEnabled) {
-            builder.addAction(mNextAction);
-        }
-
         notificationManager.notify(MediaNotificationManager.NOTIFICATION_ID, builder.build());
     }
 
+    /**
+     * Returns the notification manager used to display this notification. This is usefull if you want
+     * to cancel this notification.
+     * @return
+     */
     public NotificationManager getNotificationManager() {
         return notificationManager;
     }
 
-    // Does nothing on versions of Android earlier than O.
+    /**
+     * After android O one must create a channel for its notifications.
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     private void createChannel() {
         if (notificationManager.getNotificationChannel(CHANNEL_ID) == null) {
@@ -144,7 +159,7 @@ public class MediaNotificationManager {
             channel.enableLights(true);
             // Sets the notification light color for notifications posted to this
             // channel, if the device supports this feature.
-            channel.setLightColor(Color.RED);
+            channel.setLightColor(Color.BLUE);
             channel.enableVibration(true);
             channel.setVibrationPattern(
                     new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
@@ -155,10 +170,19 @@ public class MediaNotificationManager {
         }
     }
 
+    /**
+     * Returns true if the Android running on this phone is higher than android O. False otherwise.
+     * @return
+     */
     private boolean isAndroidOOrHigher() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.O;
     }
 
+    /**
+     * Generate a pending intent that will broadcast a playback control message.
+     * @param action: The playback control message.
+     * @return the pending intent.
+     */
     private PendingIntent generateNotifControlIntent (String action) {
         Intent i = new Intent();
         i.setAction(action);

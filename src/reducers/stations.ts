@@ -1,7 +1,5 @@
 import {Action} from "redux";
 import {Station} from "../models/Station";
-import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
-import {displayAudioPlayerNotifControl} from "../utilities";
 
 /**
  * Stations reducer. Stores the available stations that were recovered from radiodns and holds the information
@@ -104,14 +102,8 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
                 paused: false,
             }, getIndexFromActiveStation);
         case SET_LOADING:
-            if (!state.error) {
-                RadioDNSControlNotification.updateNotifState(!action.loading, true, true);
-            }
             return {...state, loading: action.loading, error: false};
         case SET_PAUSED:
-            if (!state.error) {
-                RadioDNSControlNotification.updateNotifState(!action.paused, true, true);
-            }
             return {...state, paused: action.paused};
         case SET_ACTIVE_NEXT:
             return setActiveStationHelper({
@@ -128,7 +120,6 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
         case SET_VOLUME:
             return {...state, volume: action.volume};
         case SET_ERROR:
-            RadioDNSControlNotification.updateNotifState(false, true, true);
             return {...state, error: action.error};
         case SET_VISIBILITY:
             return {
@@ -204,9 +195,6 @@ const setActiveStationHelper = (state: StationsReducerState, updateFn: (state: S
     }
 
     const index = updateFn(state);
-    if (!state.error) {
-        displayAudioPlayerNotifControl(state.station_playlist[index]);
-    }
     return {
         ...state,
         index,

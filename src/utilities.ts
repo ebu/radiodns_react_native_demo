@@ -1,9 +1,8 @@
-import {Logo, Station} from "./models/Station";
-import RadioDNSControlNotification from "./native-modules/RadioDNSControlNotification";
+import {Logo} from "./models/Station";
 
 /**
  * Returns the media to be displayed for the station (the bigger one). This is really an example implementation and one should come with
- * something smarter.
+ * something smarter (like context aware).
  * @param medias: The medias from where to choose from.
  */
 export const getMedia = (medias: Logo[] | undefined) => {
@@ -19,30 +18,6 @@ export const getMedia = (medias: Logo[] | undefined) => {
  */
 export const isWebScheme: (url: string) => boolean = (url) =>
     /^(http:\/\/www\.|https:\/\/www\.|http:\/\/|https:\/\/)?[a-z0-9]+([\-\.]{1}[a-z0-9]+)*\.[a-z]{2,5}(:[0-9]{1,5})?(\/.*)?$/.test(url);
-
-/**
- * Displays a local notification with the name of the played station.
- * @param station: The name of the station.
- */
-export const displayAudioPlayerNotifControl = (station: Station | null) => {
-    if (!station) {
-        return;
-    }
-    RadioDNSControlNotification.buildNotification(
-        station.mediumName,
-        "Powered by RadioDNS",
-        getMedia(station ? station.stationLogos : []),
-    );
-    RadioDNSControlNotification.updateNotifState(true, true, true);
-    // MusicControl.setNowPlaying({
-    //     title: station ? station.mediumName : "",
-    //     artwork: getMedia(station ? station.stationLogos : []),
-    //     description: "",
-    // });
-    // MusicControl.updatePlayback({
-    //     state: MusicControl.STATE_PLAYING,
-    // });
-};
 
 /**
  * No operation function.

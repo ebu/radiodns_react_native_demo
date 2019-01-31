@@ -1,5 +1,10 @@
 import {NativeModules} from "react-native";
 
+/**
+ * RadioDNS Android Auto module. This module handle the android auto music playback capabilities of
+ * the demonstrator. It provides an easy way to build the android auto layout + bindings to the media
+ * controls.
+ */
 export interface RadioDNSAuto {
     /**
      * Adds a node for the RadioDNS Android Auto module. Theses nodes are the representation of the
@@ -36,7 +41,7 @@ export interface RadioDNSAuto {
 
     /**
      * Sends an signal to the AutoService. A signal is just a number that has a certain meaning for
-     * the application. Refer to the #Signal enum for a list of integers that can be used as signals.
+     * the application. Refer to the [Signal] enum for a list of integers that can be used as signals.
      */
     sendSignal: (signal: number) => void;
 }
