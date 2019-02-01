@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -171,15 +172,33 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
         sendMessage(signal);
     }
 
+    /**
+     * Updates the current channel id. Note that this method will only set the metadata for this channel,
+     * not play it.
+     * @param channelId: The channel id.
+     */
+    @ReactMethod
+    public void updateChannelId(String channelId) {
+        Bundle data = new Bundle();
+        data.putString("channelId", channelId);
+        this.sendMessage(AutoServiceMessages.UPDATE_CURRENT_CHANNEL_ID, data);
+
+    }
+
     private void sendEvent(String eventName, @Nullable WritableMap params) {
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
     }
 
     private void sendMessage(int msg) {
+        this.sendMessage(msg, new Bundle());
+    }
+
+    private void sendMessage(int msg, Bundle data) {
         if (!mBound) return;
 
         try {
             Message message = Message.obtain(null, msg);
+            message.setData(data);
             mService.send(message);
         } catch (RemoteException e) {
             e.printStackTrace();

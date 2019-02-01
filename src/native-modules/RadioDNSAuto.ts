@@ -44,6 +44,13 @@ export interface RadioDNSAuto {
      * the application. Refer to the [Signal] enum for a list of integers that can be used as signals.
      */
     sendSignal: (signal: number) => void;
+
+    /**
+     * Updates the current channel id. Note that this method will only set the metadata for this channel,
+     * not play it.
+     * @param channelId: The channel id.
+     */
+    updateChannelId: (channelId: string) => void;
 }
 
 export enum Signal {

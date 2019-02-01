@@ -7,6 +7,7 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.radiodns.R;
+import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.messages.AutoServiceMessages;
 
 /**
@@ -45,6 +46,11 @@ public class IncomingMessageHandler extends Handler {
                 stateBuilder.setState(PlaybackState.STATE_ERROR, 0, 0);
                 stateBuilder.setErrorMessage(1, service.getApplicationContext().getResources().getString(R.string.error_media_format_unsuported));
                 service.getSession().setPlaybackState(stateBuilder.build());
+                break;
+            case AutoServiceMessages.UPDATE_CURRENT_CHANNEL_ID:
+                service.setCurrentMediaID(msg.getData().getString("channelId"));
+                service.setNodeData();
+                break;
             default:
                 super.handleMessage(msg);
         }

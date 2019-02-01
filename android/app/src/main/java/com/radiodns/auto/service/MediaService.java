@@ -17,7 +17,6 @@ import android.support.v4.media.MediaMetadataCompat;
 import android.support.v4.media.session.MediaSessionCompat;
 import android.support.v4.media.session.PlaybackStateCompat;
 
-import com.radiodns.R;
 import com.radiodns.auto.Constants;
 import com.radiodns.auto.RadioDNSAutoModule;
 import com.radiodns.auto.database.AutoNode;
@@ -122,33 +121,8 @@ public class MediaService extends MediaBrowserServiceCompat {
      * @param iState: integer State that will update the PlayBackState of the session.
      */
     public void updateState(String state, int iState) {
-        AutoNode node = db.autoNodeDAO().find(currentMediaID);
-        List<AutoNode> playlist = db.autoNodeDAO().loadChildren(node.childOf);
 
-        // indexOf doesn't work so by hand
-        if (playlist.size() >= 3) {
-            Iterator<AutoNode> i = playlist.iterator();
-            int index = 0;
-            while (i.hasNext()) {
-                if (i.next().key.equals(node.key)) {
-                    break;
-                }
-                index++;
-            }
-
-            previousMediaID = playlist.get(index == 0 ? playlist.size() - 1 : index - 1).key;
-            nextMediaID = playlist.get(index == playlist.size() - 1 ? 0 : index + 1).key;
-        } else {
-            previousMediaID = null;
-            nextMediaID = null;
-        }
-
-        session.setMetadata(
-                new MediaMetadataCompat.Builder()
-                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, node.value)
-                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
-                        .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
-                        .build());
+        AutoNode node = setNodeData();
 
         setMediaSessionState(iState);
 
@@ -212,6 +186,40 @@ public class MediaService extends MediaBrowserServiceCompat {
     }
 
     /**
+     * Sets the current node metadata in android auto play view. Also updates the list
+     * of next/previous station available with this station.
+     */
+    public AutoNode setNodeData() {
+        AutoNode node = db.autoNodeDAO().find(currentMediaID);
+        List<AutoNode> playlist = db.autoNodeDAO().loadChildren(node.childOf);
+
+        previousMediaID = null;
+        nextMediaID = null;
+
+        // indexOf doesn't work so by hand
+        if (playlist.size() > 1) {
+            Iterator<AutoNode> i = playlist.iterator();
+            int index = 0;
+            while (i.hasNext()) {
+                if (i.next().key.equals(node.key)) {
+                    break;
+                }
+                index++;
+            }
+
+            previousMediaID = playlist.get(index == 0 ? playlist.size() - 1 : index - 1).key;
+            nextMediaID = playlist.get(index == playlist.size() - 1 ? 0 : index + 1).key;
+        }
+        session.setMetadata(
+                new MediaMetadataCompat.Builder()
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, node.value)
+                        .putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "Powered by RadioDNS")
+                        .putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, node.imageURI)
+                        .build());
+        return node;
+    }
+
+    /**
      * Sends a message to all client registered to this service.
      *
      * @param msg: the message to send
@@ -241,6 +249,18 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     public String getNextMediaID() {
         return nextMediaID;
+    }
+
+    public String getCurrentMediaID() {
+        return currentMediaID;
+    }
+
+    public void setPreviousMediaID(String previousMediaID) {
+        this.previousMediaID = previousMediaID;
+    }
+
+    public void setNextMediaID(String nextMediaID) {
+        this.nextMediaID = nextMediaID;
     }
 
     public ArrayList<Messenger> getClients() {

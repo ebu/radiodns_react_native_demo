@@ -55,4 +55,9 @@ public class AutoServiceMessages {
      * **SIGNAL** Signal stating that exo player cannot read the current station
      */
     public final static int UPDATE_MEDIA_STATE_TO_ERROR = 102;
+
+    /**
+     * **SIGNAL** Signal to set the current channel id.
+     */
+    public final static int UPDATE_CURRENT_CHANNEL_ID = 103;
 }

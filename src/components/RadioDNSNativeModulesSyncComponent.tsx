@@ -3,7 +3,7 @@ import {DeviceEventEmitter} from "react-native";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
 import {Station} from "../models/Station";
-import * as RadioDNSAuto from "../native-modules/RadioDNSAuto";
+import RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import {Event, Signal} from "../native-modules/RadioDNSAuto";
 import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
 import RadioDNSExitApp from "../native-modules/RadioDNSExitApp";
@@ -76,15 +76,16 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
             if (!this.props.serviceProviders || this.props.serviceProviders.length === 0) {
                 return;
             }
-            const potentialStations = this.props.serviceProviders
+            const result = this.props.serviceProviders
                 .reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Station[])
                 .map((station) => ({
                     id: station.bearer.id,
                     score: commonWords(station.shortName, e.SEARCH_STRING) + commonWords(station.mediumName, e.SEARCH_STRING)
                         + commonWords(station.longName, e.SEARCH_STRING),
                 }))
-                .sort((a, b) => b.score - a.score);
-            this.playFromId(potentialStations[0].id!);
+                .sort((a, b) => b.score - a.score)[0];
+            this.playFromId(result.id);
+            RadioDNSAuto.updateChannelId(result.id);
         });
 
         DeviceEventEmitter.addListener(Event.PLAY_RANDOM, () => {
@@ -108,7 +109,7 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
         }
 
         if (prevProps.loading !== this.props.loading) {
-            RadioDNSAuto.default.sendSignal(
+            RadioDNSAuto.sendSignal(
                 this.props.loading
                     ? Signal.UPDATE_MEDIA_STATE_TO_BUFFERING
                     : Signal.UPDATE_MEDIA_STATE_TO_PLAYING,
@@ -116,7 +117,7 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
         }
 
         if (!prevProps.error && this.props.error) {
-            RadioDNSAuto.default.sendSignal(Signal.UPDATE_MEDIA_STATE_TO_ERROR);
+            RadioDNSAuto.sendSignal(Signal.UPDATE_MEDIA_STATE_TO_ERROR);
         }
     }
 
