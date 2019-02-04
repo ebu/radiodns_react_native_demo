@@ -44,7 +44,9 @@ public class MediaSessionEventCallback extends MediaSessionCompat.Callback {
 
     @Override
     public void onPause() {
-        autoService.updateState(StateUpdatesMessages.PAUSE, PlaybackState.STATE_PAUSED);
+        if (autoService.getCurrentMediaID() != null) {
+            autoService.updateState(StateUpdatesMessages.PAUSE, PlaybackState.STATE_PAUSED);
+        }
     }
 
     @Override
