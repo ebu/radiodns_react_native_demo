@@ -2,13 +2,14 @@ import * as React from "react"
 import Video, {LoadError} from "react-native-video";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Station} from "../../models/Station";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setError, setLoadingState} from "../../reducers/stations";
+import {getBearer} from "../../utilities";
 
 interface Props {
     // injected props
-    currentSteam?: Station | null;
+    currentSteam?: Service | null;
     paused?: boolean;
     loading?: boolean;
     volume?: number;
@@ -25,11 +26,7 @@ class PlayerContainer extends React.Component<Props> {
         if (!this.props.currentSteam) {
             return null;
         }
-        const uri = this.props.currentSteam.bearer.id;
-        if (typeof uri !== "string") {
-            this.props.setError!(true);
-            return null;
-        }
+        const uri = getBearer(this.props.currentSteam.bearer).id;
         return (
             <Video
                 allowsExternalPlayback

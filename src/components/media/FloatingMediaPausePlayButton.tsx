@@ -3,14 +3,14 @@ import {ActivityIndicator} from "react-native";
 import ActionButton from "react-native-action-button";
 import {Icon} from "react-native-elements";
 import {connect} from "react-redux";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_DANGER, COLOR_PRIMARY} from "../../colors";
-import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
 import {setNextStation, setPausedState, setPreviousStation} from "../../reducers/stations";
 
 interface Props {
     // injected
-    activeStation?: Station | null;
+    activeStation?: Service | null;
     loading?: boolean;
     paused?: boolean;
     error?: boolean;

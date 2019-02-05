@@ -1,12 +1,12 @@
 import * as React from "react";
 import {TouchableOpacity} from "react-native";
 import {Avatar} from "react-native-elements";
-import {Station} from "../../models/Station";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {getMedia} from "../../utilities";
 import {MediumText} from "../texts/MediumText";
 
 interface Props {
-    station: Station;
+    station: Service;
     // callback for when one touch this component.
     onPress: () => void;
 }
@@ -28,9 +28,9 @@ export const StationItemRenderer: React.FC<Props> = (props) => (
         <Avatar
             medium
             rounded
-            source={getMedia(props.station.stationLogos) === ""
+            source={getMedia(props.station.mediaDescription) === ""
                 ? require("../../../ressources/ebu_logo.png")
-                : {uri: getMedia(props.station.stationLogos)}}
+                : {uri: getMedia(props.station.mediaDescription)}}
         />
         <MediumText style={{marginLeft: 10}}>{props.station.mediumName}</MediumText>
     </TouchableOpacity>

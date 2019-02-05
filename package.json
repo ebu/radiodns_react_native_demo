@@ -26,6 +26,7 @@
     "react-navigation": "3.0.8",
     "react-redux": "6.0.0",
     "redux": "4.0.1",
+    "spi_xml_file_parser": "1.0.1",
     "stream": "0.0.2",
     "xml-js": "1.6.8"
   },

@@ -1,13 +1,13 @@
 import * as React from "react";
 import {Text} from "react-native-elements";
 import {connect} from "react-redux"
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY} from "../../colors";
-import {Station} from "../../models/Station";
 import {RootReducerState} from "../../reducers/root-reducer";
 
 interface Props {
     // injected props
-    activeStation?: Station | null;
+    activeStation?: Service | null;
 }
 
 /**

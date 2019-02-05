@@ -1,15 +1,24 @@
-import {Logo} from "./models/Station";
+import {Bearer, MediaDescription} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 
 /**
  * Returns the media to be displayed for the station (the bigger one). This is really an example implementation and one should come with
  * something smarter (like context aware).
  * @param medias: The medias from where to choose from.
  */
-export const getMedia = (medias: Logo[] | undefined) => {
+export const getMedia: (medias: MediaDescription[] | undefined) => string = (medias) => {
     if (medias && medias.length > 0) {
         return medias.reduce((best, current) => current.width > best.width ? current : best).url;
     }
     return "";
+};
+
+export const getBearer: (bearers: Bearer[]) => Bearer = (bearers) => {
+    return {
+        ...(Array.isArray(bearers)
+            ? bearers
+                .reduce((best, current) => current.cost! > best.cost! ? current : best)
+            : bearers),
+    };
 };
 
 /**
@@ -23,11 +32,6 @@ export const isWebScheme: (url: string) => boolean = (url) =>
  * No operation function.
  */
 export const noop = () => {};
-
-/**
- * [ANDROID ONLY] Cancels the local notification (dismiss it).
- */
-export const cancelAudioPlayerNotifControl = () => {}; // MusicControl.resetNowPlaying();
 
 /**
  * Assuming the two parameters are sentences composed of words separated with blanks, counts the

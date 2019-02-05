@@ -2,21 +2,21 @@ import * as React from "react";
 import {FlatList, ListRenderItemInfo} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY} from "../colors";
 import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPausePlayButton";
 import {MediaSearchBar} from "../components/media/MediaSearchBar";
 import {StationItemRenderer} from "../components/renderers/StationItemRenderer";
 import {BaseView} from "../components/views/BaseView";
-import {Station} from "../models/Station";
 import {RootReducerState} from "../reducers/root-reducer";
 import {setActiveStation, setStationPlaylist} from "../reducers/stations";
 
 interface Props extends NavigationScreenProps {
     // injected
-    stations?: Station[];
+    stations?: Service[];
     searchedStation?: string;
-    setActiveStation?: (station: Station) => void;
-    setStationPlaylist?: (stations: Station[]) => void;
+    setActiveStation?: (station: Service) => void;
+    setStationPlaylist?: (stations: Service[]) => void;
 }
 
 /**
@@ -34,7 +34,7 @@ export class StationsViewContainer extends React.Component<Props> {
                 <FlatList
                     style={{width: "100%"}}
                     data={this.props.stations ? this.props.stations.filter((station) =>
-                        station.mediumName.toLocaleLowerCase().includes(this.props.searchedStation || "")) : []}
+                        (station.mediumName || "").toLocaleLowerCase().includes(this.props.searchedStation || "")) : []}
                     renderItem={this.renderStation}
                     extraData={this.props.searchedStation}
                 />
@@ -43,7 +43,7 @@ export class StationsViewContainer extends React.Component<Props> {
         );
     }
 
-    private renderStation = ({item, index}: ListRenderItemInfo<Station>) => (
+    private renderStation = ({item, index}: ListRenderItemInfo<Service>) => (
         <StationItemRenderer
             key={index}
             station={item}
@@ -54,7 +54,7 @@ export class StationsViewContainer extends React.Component<Props> {
      * Creates a function that can set the current active station and navigate to the player view.
      * @param station: The station that would be active.
      */
-    private activateAndNavigateToStation = (station: Station) => () => {
+    private activateAndNavigateToStation = (station: Service) => () => {
         this.props.setStationPlaylist!(this.props.stations!);
         this.props.setActiveStation!(station);
         this.props.navigation.navigate("PlayerView")
@@ -67,7 +67,7 @@ export const StationsView = connect(
         searchedStation: state.stations.searchedStation,
     }),
     ((dispatch) => ({
-        setActiveStation: (station: Station) => dispatch(setActiveStation(station)),
-        setStationPlaylist: (stations: Station[]) => dispatch(setStationPlaylist(stations)),
+        setActiveStation: (station: Service) => dispatch(setActiveStation(station)),
+        setStationPlaylist: (stations: Service[]) => dispatch(setStationPlaylist(stations)),
     })),
 )(StationsViewContainer);

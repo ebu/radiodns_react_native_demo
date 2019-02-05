@@ -1,5 +1,6 @@
 import {Action} from "redux";
-import {Station} from "../models/Station";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
+import {getBearer} from "../utilities";
 
 /**
  * Stations reducer. Stores the available stations that were recovered from radiodns and holds the information
@@ -8,15 +9,15 @@ import {Station} from "../models/Station";
 
 // Types
 interface StationSetPlaylistAction extends Action<typeof SET_STATION_PLAYLIST> {
-    stations: Station[];
+    stations: Service[];
 }
 
 interface StationSetCurrentlyVisibleAction extends Action<typeof SET_STATIONS_CURRENTLY_VISIBLE> {
-    stations: Station[];
+    stations: Service[];
 }
 
 interface StationsSetActiveAction extends Action<typeof SET_ACTIVE> {
-    activeStation: Station;
+    activeStation: Service;
 }
 
 interface StationsSetLoading extends Action<typeof SET_LOADING> {
@@ -52,9 +53,9 @@ type StationsActions =
     | StationsSetError;
 
 export interface StationsReducerState {
-    station_playlist: Station[];
-    stations_currently_visible: Station[];
-    activeStation: Station | null;
+    station_playlist: Service[];
+    stations_currently_visible: Service[];
+    activeStation: Service | null;
     loading: boolean;
     paused: boolean;
     index: number;
@@ -133,17 +134,17 @@ export function reducer(state: StationsReducerState = STATIONS_REDUCER_DEFAULT_S
 
 // Action creators
 
-export const setStationPlaylist: (stations: Station[]) => StationSetPlaylistAction = (stations) => ({
+export const setStationPlaylist: (stations: Service[]) => StationSetPlaylistAction = (stations) => ({
     type: SET_STATION_PLAYLIST,
     stations,
 });
 
-export const setStationsCurrentlyVisible: (stations: Station[]) => StationSetCurrentlyVisibleAction = (stations) => ({
+export const setStationsCurrentlyVisible: (stations: Service[]) => StationSetCurrentlyVisibleAction = (stations) => ({
     type: SET_STATIONS_CURRENTLY_VISIBLE,
     stations,
 });
 
-export const setActiveStation: (activeStation: Station) => StationsSetActiveAction = (activeStation) => ({
+export const setActiveStation: (activeStation: Service) => StationsSetActiveAction = (activeStation) => ({
     type: SET_ACTIVE,
     activeStation,
 });
@@ -213,7 +214,7 @@ const getIndexFromActiveStation = (state: StationsReducerState) => {
     }
 
     const currentIndex = state.station_playlist
-        .map((station) => station.bearer.id)
-        .indexOf(state.activeStation.bearer.id);
+        .map((station) => getBearer(station.bearer).id)
+        .indexOf(getBearer(state.activeStation.bearer).id);
     return currentIndex === -1 ? 0 : currentIndex;
 };

@@ -2,8 +2,8 @@ import * as React from "react";
 import {ActivityIndicator, Image, TouchableOpacity, View} from "react-native";
 import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_SECONDARY} from "../../colors";
-import {Station} from "../../models/Station";
 import {setStationsCurrentlyVisible} from "../../reducers/stations";
 import {SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
@@ -14,7 +14,7 @@ interface Props {
     navigationProp: NavigationScreenProps;
 
     // injected
-    loadStations?: (stations: Station[]) => void;
+    loadStations?: (stations: Service[]) => void;
 }
 
 interface State {
@@ -56,7 +56,8 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
                         defaultSource={require("../../../ressources/ebu_logo.png")}
                         source={{
                             uri: getMedia(cacheResponse.serviceProvider.mediaDescription) === ""
-                                ? `https://via.placeholder.com/200x200?text=${cacheResponse.serviceProvider.mediumName.text}`
+                                ? `https://via.placeholder.com/200x200?text=${
+                                cacheResponse.serviceProvider.mediumName ? cacheResponse.serviceProvider.mediumName.text : ""}`
                                 : getMedia(cacheResponse.serviceProvider.mediaDescription),
                         }}
                     />
@@ -89,6 +90,6 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
 export const ServiceProviderRenderer = connect(
     () => ({}),
     ((dispatch) => ({
-        loadStations: (stations: Station[]) => dispatch(setStationsCurrentlyVisible(stations)),
+        loadStations: (stations: Service[]) => dispatch(setStationsCurrentlyVisible(stations)),
     })),
 )(ServiceProviderRendererContainer);

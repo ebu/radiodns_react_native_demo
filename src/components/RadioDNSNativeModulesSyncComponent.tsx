@@ -2,7 +2,7 @@ import * as React from "react"
 import {DeviceEventEmitter} from "react-native";
 import {connect} from "react-redux";
 import {Dispatch} from "redux";
-import {Station} from "../models/Station";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import {Event, Signal} from "../native-modules/RadioDNSAuto";
 import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
@@ -17,12 +17,12 @@ import {
     setVolume,
 } from "../reducers/stations";
 import {SPICacheContainer} from "../services/SPICache";
-import {commonWords, getMedia, shuffleArray} from "../utilities";
+import {commonWords, getBearer, getMedia, shuffleArray} from "../utilities";
 
 interface Props {
     // injected props
     serviceProviders?: SPICacheContainer[];
-    activeStation?: Station | null;
+    activeStation?: Service | null;
     paused?: boolean;
     loading?: boolean;
     error?: boolean;
@@ -32,8 +32,8 @@ interface Props {
     setNextStation?: () => void;
     setPreviousStation?: () => void;
     setVolume?: (volume: number) => void;
-    setStationPlaylist?: (stations: Station[]) => void;
-    setActiveStation?: (activeStation: Station) => void;
+    setStationPlaylist?: (stations: Service[]) => void;
+    setActiveStation?: (activeStation: Service) => void;
 }
 
 /**
@@ -77,11 +77,11 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
                 return;
             }
             const result = this.props.serviceProviders
-                .reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Station[])
+                .reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Service[])
                 .map((station) => ({
-                    id: station.bearer.id,
-                    score: commonWords(station.shortName, e.SEARCH_STRING) + commonWords(station.mediumName, e.SEARCH_STRING)
-                        + commonWords(station.longName, e.SEARCH_STRING),
+                    id: getBearer(station.bearer).id,
+                    score: commonWords(station.shortName || "", e.SEARCH_STRING) + commonWords(station.mediumName || "", e.SEARCH_STRING)
+                        + commonWords(station.longName || "", e.SEARCH_STRING),
                 }))
                 .sort((a, b) => b.score - a.score)[0];
             this.playFromId(result.id);
@@ -91,16 +91,16 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
         DeviceEventEmitter.addListener(Event.PLAY_RANDOM, () => {
             const scrambledArray = shuffleArray(this.props.serviceProviders!
                 .filter((cacheContainer) => cacheContainer.stations !== undefined)
-                .reduce((acc, cacheContainer) => acc!.concat(cacheContainer.stations!), [] as Station[])
-                .map((stations) => stations.bearer.id));
+                .reduce((acc, cacheContainer) => acc!.concat(cacheContainer.stations!), [] as Service[])
+                .map((stations) => getBearer(stations.bearer).id));
             this.playFromId(scrambledArray[0]);
         })
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>): void {
         if (prevProps.activeStation !== this.props.activeStation && !!this.props.activeStation) {
-            const {mediumName, stationLogos} = this.props.activeStation;
-            RadioDNSControlNotification.prepareNotification(mediumName, "", getMedia(stationLogos));
+            const {mediumName, mediaDescription} = this.props.activeStation;
+            RadioDNSControlNotification.prepareNotification(mediumName || "", "", getMedia(mediaDescription));
         }
 
         if (this.props.activeStation !== null) {
@@ -130,13 +130,13 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
             .map((spiCache) => spiCache.stations)
             .filter((stations) => stations !== undefined)
             .reduce((prev, current) => current!.filter((station) =>
-                station.bearer.id === channelId).length > 0
+                getBearer(station.bearer).id === channelId).length > 0
                 ? current
                 : prev
                 , []);
         this.props.setStationPlaylist!(stationGroup!);
         this.props.setActiveStation!(stationGroup!.reduce((prev, current) =>
-            current.bearer.id === channelId
+            getBearer(current.bearer).id === channelId
                 ? current
                 : prev));
     }
@@ -156,7 +156,7 @@ export const RadioDNSNativeModulesSyncComponent = connect(
         setNextStation: () => dispatch(setNextStation()),
         setPreviousStation: () => dispatch(setPreviousStation()),
         setVolume: (volume: number) => dispatch(setVolume(volume)),
-        setStationPlaylist: (stations: Station[]) => dispatch(setStationPlaylist(stations)),
-        setActiveStation: (station: Station) => dispatch(setActiveStation(station)),
+        setStationPlaylist: (stations: Service[]) => dispatch(setStationPlaylist(stations)),
+        setActiveStation: (station: Service) => dispatch(setActiveStation(station)),
     })),
 )(RadioDNSNativeModulesSyncComponentReduxListener);

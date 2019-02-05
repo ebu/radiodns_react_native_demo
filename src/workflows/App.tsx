@@ -3,18 +3,18 @@ import {AppState, AppStateStatus} from "react-native";
 // @ts-ignore - createAppContainer does exists in react navigation but typings are not up to date.
 import {createAppContainer, createStackNavigator} from "react-navigation";
 import {Provider} from "react-redux";
+import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../colors";
 import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBoundary";
 import {Player} from "../components/media/Player";
 import {RadioDNSNativeModulesSyncComponent} from "../components/RadioDNSNativeModulesSyncComponent";
 import {SERVICE_PROVIDERS} from "../constants";
-import {Station} from "../models/Station";
 import RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
 import {store} from "../reducers/root-reducer";
 import {setServiceProviders} from "../reducers/service-providers";
 import {getAllSPIs, SPICacheContainer} from "../services/SPICache";
-import {getMedia} from "../utilities";
+import {getBearer, getMedia} from "../utilities";
 import {HomeScreen} from "./HomeScreen";
 import {PlayerView} from "./PlayerView";
 import {StationsView} from "./StationsView";
@@ -107,11 +107,11 @@ export default class App extends React.Component {
     };
 
     private parseAndCacheGenresForAndroidAuto = (spiCacheResponses: SPICacheContainer[]) => {
-        const genres: { [key: string]: Station[] } = {};
-        spiCacheResponses.reduce((acc, spiCache) => acc.concat(spiCache.stations!), [] as Station[])
+        const genres: { [key: string]: Service[] } = {};
+        spiCacheResponses.reduce((acc, spiCache) => acc.concat(spiCache.stations || []), [] as Service[])
             .reduce((acc, station) => acc.concat(
                 station.genre.map((genre) => ({genre: genre.text.replace("\"", "").trim(), station})),
-            ), [] as Array<{ station: Station, genre: string }>)
+            ), [] as Array<{ station: Service, genre: string }>)
             .sort((a, b) => {
                 if (a.genre < b.genre) {
                     return -1;
@@ -121,7 +121,7 @@ export default class App extends React.Component {
                 }
                 return 0;
             })
-            .filter((a) => a.station.bearer.id)
+            .filter((a) => getBearer(a.station.bearer).id)
             .forEach((a) => genres[a.genre] ? genres[a.genre].push(a.station) : genres[a.genre] = [a.station]);
 
         Object.keys(genres).forEach((genre) => {
@@ -133,13 +133,13 @@ export default class App extends React.Component {
                 null,
             );
             genres[genre].forEach((station) => {
-                const mediaUri = getMedia(station.stationLogos);
+                const mediaUri = getMedia(station.mediaDescription);
                 RadioDNSAuto.addNode(
                     genre,
-                    genre + station.bearer.id,
-                    station.shortName,
+                    genre + getBearer(station.bearer).id,
+                    station.shortName || "",
                     mediaUri,
-                    station.bearer.id,
+                    getBearer(station.bearer).id,
                 );
             });
         });
@@ -157,23 +157,20 @@ export default class App extends React.Component {
         RadioDNSAuto.addNode(
             "byServiceProviderRoot",
             cacheResponse.spUrl,
-            cacheResponse.serviceProvider.shortName.text,
+            cacheResponse.serviceProvider.shortName ? cacheResponse.serviceProvider.shortName.text : "",
             getMedia(cacheResponse.serviceProvider.mediaDescription),
             null,
         );
         cacheResponse.stations.forEach((station) => {
-            if (!station.bearer.id) {
-                return;
-            }
-            const mediaUri = getMedia(station.stationLogos);
+            const mediaUri = getMedia(station.mediaDescription);
 
             // ADD CHANNEL
             RadioDNSAuto.addNode(
                 cacheResponse.spUrl,
-                station.bearer.id,
-                station.shortName,
+                getBearer(station.bearer).id,
+                station.shortName || "",
                 mediaUri,
-                station.bearer.id,
+                getBearer(station.bearer).id,
             );
         });
     }
