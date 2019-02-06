@@ -1,7 +1,7 @@
 import * as React from "react";
 import {ErrorInfo} from "react";
 import {connect} from "react-redux";
-import {RootReducerState} from "../../reducers/root-reducer";
+import {RootReducerState} from "../../reducers/slave-reducer";
 
 interface Props {
     // injected

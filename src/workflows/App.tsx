@@ -9,10 +9,11 @@ import {PlayerErrorBoundary} from "../components/error-boundaries/PlayerErrorBou
 import {Player} from "../components/media/Player";
 import {RadioDNSNativeModulesSyncComponent} from "../components/RadioDNSNativeModulesSyncComponent";
 import {SERVICE_PROVIDERS} from "../constants";
+import {setServiceProviders} from "../kokoro/reducers/service-providers";
+import {dispatch} from "../native-modules/Kokoro";
 import RadioDNSAuto from "../native-modules/RadioDNSAuto";
 import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
-import {store} from "../reducers/root-reducer";
-import {setServiceProviders} from "../reducers/service-providers";
+import {store} from "../reducers/slave-reducer";
 import {getAllSPIs, SPICacheContainer} from "../services/SPICache";
 import {getBearer, getMedia} from "../utilities";
 import {HomeScreen} from "./HomeScreen";
@@ -79,7 +80,7 @@ export default class App extends React.Component {
         this.parseAndCacheGenresForAndroidAuto(spiCacheResponses);
 
         RadioDNSAuto.refresh();
-        store.dispatch(setServiceProviders(spiCacheResponses));
+        dispatch(setServiceProviders(spiCacheResponses));
     }
 
     public componentWillUnmount() {

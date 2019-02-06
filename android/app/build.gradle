@@ -166,23 +166,28 @@ dependencies {
     implementation "android.arch.persistence.room:runtime:$room_version"
     annotationProcessor "android.arch.persistence.room:compiler:$room_version"
 
+    // RN LIBS
     compile project(':react-native-gesture-handler')
-    compile project(':react-native-video')
     compile project(':react-native-vector-icons')
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "com.android.support:appcompat-v7:${rootProject.ext.supportLibVersion}"
     implementation 'com.facebook.react:react-native:+'
 
+    // IMAGE FETCHING
     implementation 'com.github.bumptech.glide:glide:4.8.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.8.0'
 
+    // DATABASE DEBUG TOOLS
     debugImplementation 'com.amitshekhar.android:debug-db:1.0.4'
 
     // FIREBASE
     implementation 'com.google.firebase:firebase-core:16.0.7'
     implementation 'com.crashlytics.sdk.android:crashlytics:2.9.8'
 
-    // From node_modules
+    // Kokoro
+    implementation 'com.github.LiquidPlayer:LiquidCore:0.5.1'
+
+    // EXO PLAYER
 }
 
 // Run this once to be able to run the application with BUCK

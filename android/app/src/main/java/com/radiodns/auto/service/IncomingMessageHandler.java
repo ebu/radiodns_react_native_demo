@@ -7,7 +7,6 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.radiodns.R;
-import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.messages.AutoServiceMessages;
 
 /**

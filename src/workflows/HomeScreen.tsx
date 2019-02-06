@@ -8,7 +8,7 @@ import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPaus
 import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
 import {BaseView} from "../components/views/BaseView";
 import {PhotoGrid} from "../components/views/PhotoGrid";
-import {RootReducerState} from "../reducers/root-reducer";
+import {RootReducerState} from "../reducers/slave-reducer";
 import {clearCache, SPICacheContainer} from "../services/SPICache";
 
 interface Props extends NavigationScreenProps {

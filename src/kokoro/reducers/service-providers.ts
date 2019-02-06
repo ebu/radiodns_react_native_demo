@@ -1,5 +1,5 @@
 import {Action} from "redux";
-import {SPICacheContainer} from "../services/SPICache";
+import {SPICacheContainer} from "../../services/SPICache";
 
 // Types
 interface ServiceProvidersSetAction extends Action<typeof SET_SERVICE_PROVIDERS> {
@@ -13,7 +13,7 @@ export interface ServiceProvidersReducerState {
 }
 
 // Actions
-const SET_SERVICE_PROVIDERS = "radiodns_react_native_technical_demo/service-providers/SET_SERVICE_PROVIDERS";
+const SET_SERVICE_PROVIDERS = "radiodns_react_native_technical_demo/kokoro/service-providers/SET_SERVICE_PROVIDERS";
 
 // Reducer
 export const SERVICE_PROVIDERS_REDUCER_DEFAULT_STATE: ServiceProvidersReducerState = {

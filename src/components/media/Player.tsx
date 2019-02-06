@@ -1,10 +1,9 @@
 import * as React from "react"
-import Video, {LoadError} from "react-native-video";
 import {connect} from "react-redux";
-import {Dispatch} from "redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
-import {RootReducerState} from "../../reducers/root-reducer";
-import {setError, setLoadingState} from "../../reducers/stations";
+import {setError, setLoadingState} from "../../kokoro/reducers/stations";
+import {dispatch} from "../../native-modules/Kokoro";
+import {RootReducerState} from "../../reducers/slave-reducer";
 import {getBearer} from "../../utilities";
 
 interface Props {
@@ -26,42 +25,44 @@ class PlayerContainer extends React.Component<Props> {
         if (!this.props.currentSteam) {
             return null;
         }
+        // @ts-ignore
         const uri = getBearer(this.props.currentSteam.bearer).id;
-        return (
-            <Video
-                allowsExternalPlayback
-                source={{uri}}
-                onBuffer={this.onBuffering}
-                onError={this.onError}
-                style={{display: "none"}}
-                onLoad={this.onMediaReady}
-                onProgress={this.onProgress}
-                onLoadStart={this.onLoadStart}
-                playInBackground
-                paused={this.props.paused}
-                volume={this.props.volume}
-            />
-        );
+        // return (
+        //     <Video
+        //         allowsExternalPlayback
+        //         source={{uri}}
+        //         onBuffer={this.onBuffering}
+        //         onError={this.onError}
+        //         style={{display: "none"}}
+        //         onLoad={this.onMediaReady}
+        //         onProgress={this.onProgress}
+        //         onLoadStart={this.onLoadStart}
+        //         playInBackground
+        //         paused={this.props.paused}
+        //         volume={this.props.volume}
+        //     />
+        // );
+        return null;
     }
 
     // MEDIA HANDLING
-    private onMediaReady = () => this.props.setLoadingState!(false);
+    // private onMediaReady = () => this.props.setLoadingState!(false);
 
-    private onProgress = () => {
-        if (this.props.loading) {
-            this.onMediaReady();
-        }
-    };
+    // private onProgress = () => {
+    //     if (this.props.loading) {
+    //         this.onMediaReady();
+    //     }
+    // };
 
-    private onLoadStart = () => this.props.setLoadingState!(true);
+    // private onLoadStart = () => this.props.setLoadingState!(true);
 
-    private onBuffering = () => this.props.setLoadingState!(true);
+    // private onBuffering = () => this.props.setLoadingState!(true);
 
     // PLAYER IMPLEMENTATION METHODS
-    private onError = (e: LoadError) => {
-        this.props.setError!(true);
-        console.error(e.error)
-    };
+    // private onError = (e: LoadError) => {
+    //     this.props.setError!(true);
+    //     console.error(e.error)
+    // };
 }
 
 export const Player = connect(
@@ -71,7 +72,7 @@ export const Player = connect(
         loading: state.stations.loading,
         volume: state.stations.volume,
     }),
-    ((dispatch: Dispatch) => ({
+    (() => ({
         setLoadingState: (loading: boolean) => dispatch(setLoadingState(loading)),
         setError: (error: boolean) => dispatch(setError(error)),
     })),

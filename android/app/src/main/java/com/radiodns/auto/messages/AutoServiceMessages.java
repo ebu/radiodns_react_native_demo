@@ -38,6 +38,10 @@ public class AutoServiceMessages {
      */
     public final static int SEND_PLAY_RANDOM = 7;
 
+    public final static int EMIT_MESSAGE = 8;
+
+    public final static int UPDATE_STATE = 9;
+
 
     // SIGNALS
     /**

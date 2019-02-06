@@ -1,13 +1,7 @@
 import * as React from "react"
 import {DeviceEventEmitter} from "react-native";
 import {connect} from "react-redux";
-import {Dispatch} from "redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
-import RadioDNSAuto from "../native-modules/RadioDNSAuto";
-import {Event, Signal} from "../native-modules/RadioDNSAuto";
-import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
-import RadioDNSExitApp from "../native-modules/RadioDNSExitApp";
-import {RootReducerState} from "../reducers/root-reducer";
 import {
     setActiveStation,
     setNextStation,
@@ -15,7 +9,13 @@ import {
     setPreviousStation,
     setStationPlaylist,
     setVolume,
-} from "../reducers/stations";
+} from "../kokoro/reducers/stations";
+import {dispatch} from "../native-modules/Kokoro";
+import RadioDNSAuto from "../native-modules/RadioDNSAuto";
+import {Event, Signal} from "../native-modules/RadioDNSAuto";
+import RadioDNSControlNotification from "../native-modules/RadioDNSControlNotification";
+import RadioDNSExitApp from "../native-modules/RadioDNSExitApp";
+import {RootReducerState, updateGlobalState} from "../reducers/slave-reducer";
 import {SPICacheContainer} from "../services/SPICache";
 import {commonWords, getBearer, getMedia, shuffleArray} from "../utilities";
 
@@ -34,6 +34,7 @@ interface Props {
     setVolume?: (volume: number) => void;
     setStationPlaylist?: (stations: Service[]) => void;
     setActiveStation?: (activeStation: Service) => void;
+    updateGlobalState?: (state: RootReducerState) => void;
 }
 
 /**
@@ -94,7 +95,11 @@ class RadioDNSNativeModulesSyncComponentReduxListener extends React.Component<Pr
                 .reduce((acc, cacheContainer) => acc!.concat(cacheContainer.stations!), [] as Service[])
                 .map((stations) => getBearer(stations.bearer).id));
             this.playFromId(scrambledArray[0]);
-        })
+        });
+
+        DeviceEventEmitter.addListener("update_state", (event) => {
+            this.props.updateGlobalState!(JSON.parse(event.state));
+        });
     }
 
     public componentDidUpdate(prevProps: Readonly<Props>): void {
@@ -151,12 +156,13 @@ export const RadioDNSNativeModulesSyncComponent = connect(
         error: state.stations.error,
         volume: state.stations.volume,
     }),
-    ((dispatch: Dispatch) => ({
+    ((disp) => ({
         setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
         setNextStation: () => dispatch(setNextStation()),
         setPreviousStation: () => dispatch(setPreviousStation()),
         setVolume: (volume: number) => dispatch(setVolume(volume)),
         setStationPlaylist: (stations: Service[]) => dispatch(setStationPlaylist(stations)),
         setActiveStation: (station: Service) => dispatch(setActiveStation(station)),
+        updateGlobalState: (state: RootReducerState) => disp(updateGlobalState(state)),
     })),
 )(RadioDNSNativeModulesSyncComponentReduxListener);

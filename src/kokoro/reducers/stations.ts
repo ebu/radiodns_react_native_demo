@@ -1,6 +1,6 @@
 import {Action} from "redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
-import {getBearer} from "../utilities";
+import {getBearer} from "../../utilities";
 
 /**
  * Stations reducer. Stores the available stations that were recovered from radiodns and holds the information
@@ -65,16 +65,16 @@ export interface StationsReducerState {
 }
 
 // Actions
-const SET_STATION_PLAYLIST = "radiodns_react_native_technical_demo/stations/SET_STATION_PLAYLIST";
-const SET_STATIONS_CURRENTLY_VISIBLE = "radiodns_react_native_technical_demo/stations/SET_STATIONS_CURRENTLY_VISIBLE";
-const SET_ACTIVE = "radiodns_react_native_technical_demo/stations/SET_ACTIVE";
-const SET_LOADING = "radiodns_react_native_technical_demo/stations/SET_LOADING";
-const SET_PAUSED = "radiodns_react_native_technical_demo/stations/SET_PAUSED";
-const SET_ACTIVE_NEXT = "radiodns_react_native_technical_demo/stations/SET_ACTIVE_NEXT";
-const SET_ACTIVE_PREVIOUS = "radiodns_react_native_technical_demo/stations/SET_ACTIVE_PREVIOUS";
-const SET_VOLUME = "radiodns_react_native_technical_demo/stations/SET_VOLUME";
-const SET_ERROR = "radiodns_react_native_technical_demo/stations/SET_ERROR";
-const SET_VISIBILITY = "radiodns_react_native_technical_demo/stations/SET_VISIBILITY";
+const SET_STATION_PLAYLIST = "radiodns_react_native_technical_demo/kokoro/stations/SET_STATION_PLAYLIST";
+const SET_STATIONS_CURRENTLY_VISIBLE = "radiodns_react_native_technical_demo/kokoro/stations/SET_STATIONS_CURRENTLY_VISIBLE";
+const SET_ACTIVE = "radiodns_react_native_technical_demo/kokoro/stations/SET_ACTIVE";
+const SET_LOADING = "radiodns_react_native_technical_demo/kokoro/stations/SET_LOADING";
+const SET_PAUSED = "radiodns_react_native_technical_demo/kokoro/stations/SET_PAUSED";
+const SET_ACTIVE_NEXT = "radiodns_react_native_technical_demo/kokoro/stations/SET_ACTIVE_NEXT";
+const SET_ACTIVE_PREVIOUS = "radiodns_react_native_technical_demo/kokoro/stations/SET_ACTIVE_PREVIOUS";
+const SET_VOLUME = "radiodns_react_native_technical_demo/kokoro/stations/SET_VOLUME";
+const SET_ERROR = "radiodns_react_native_technical_demo/kokoro/stations/SET_ERROR";
+const SET_VISIBILITY = "radiodns_react_native_technical_demo/kokoro/stations/SET_VISIBILITY";
 
 // Reducer
 export const STATIONS_REDUCER_DEFAULT_STATE: StationsReducerState = {

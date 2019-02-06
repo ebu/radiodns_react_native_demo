@@ -94,6 +94,9 @@ export const getAllSPIs: (serviceProviders: string[]) => Promise<SPICacheContain
             && cacheResponse.stations.length > 0,
         ).map((cacheResponse) => ({
                 ...cacheResponse, stations: cacheResponse.stations!
+                    .map((station) => {
+                        return station;
+                    })
                     .map((station) => ({...station, bearer: station.bearer.filter((b) => isWebScheme(b.id) && b.cost)}))
                     .filter(
                         (station) => station.bearer.length > 0,
