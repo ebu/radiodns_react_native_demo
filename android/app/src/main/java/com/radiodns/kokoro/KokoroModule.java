@@ -20,7 +20,10 @@ import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.radiodns.auto.messages.AutoServiceMessages;
-import com.radiodns.kokoro.js_runtime.JSExecutorService;
+import com.radiodns.kokoro.js_runtime.Kokoro;
+import com.radiodns.utilities.GZIPCompression;
+
+import java.io.IOException;
 
 import javax.annotation.Nullable;
 
@@ -48,7 +51,12 @@ public class KokoroModule extends ReactContextBaseJavaModule {
             WritableMap params = Arguments.createMap();
             switch (msg.what) {
                 case AutoServiceMessages.UPDATE_STATE:
-                    params.putString("state", msg.getData().getString("msg"));
+                    byte[] compressed = msg.getData().getByteArray("msg");
+                    try {
+                        params.putString("state", GZIPCompression.decompress(compressed));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     sendEvent("update_state", params);
                 default:
                     super.handleMessage(msg);
@@ -68,9 +76,8 @@ public class KokoroModule extends ReactContextBaseJavaModule {
                 mBound = true;
 
                 try {
-                    Message msg = Message.obtain(null, AutoServiceMessages.REGISTER_CLIENT);
-                    msg.replyTo = mMessenger;
-                    mService.send(msg);
+                    sendMessage(AutoServiceMessages.REGISTER_CLIENT, new Bundle(), mMessenger);
+                    sendMessage(AutoServiceMessages.KOKORO_REGISTER_STATE_UPDATES, new Bundle(), mMessenger);
                 } catch (RemoteException e) {
                     e.printStackTrace();
                 }
@@ -83,8 +90,8 @@ public class KokoroModule extends ReactContextBaseJavaModule {
             }
         };
 
-        reactContext.bindService(new Intent(reactContext, JSExecutorService.class), mConnection, Context.BIND_AUTO_CREATE);
-        reactContext.startService(new Intent(reactContext, JSExecutorService.class));
+        reactContext.bindService(new Intent(reactContext, Kokoro.class), mConnection, Context.BIND_AUTO_CREATE);
+        reactContext.startService(new Intent(reactContext, Kokoro.class));
     }
 
     @Override
@@ -107,22 +114,28 @@ public class KokoroModule extends ReactContextBaseJavaModule {
     public void dispatch(String action) {
         Bundle data = new Bundle();
         data.putString("msg", action);
-        sendMessage(AutoServiceMessages.EMIT_MESSAGE, data);
+        try {
+            sendMessage(AutoServiceMessages.EMIT_MESSAGE, data);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendEvent(String eventName, @Nullable WritableMap params) {
         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit(eventName, params);
     }
 
-    private void sendMessage(int msg, Bundle data) {
-        if (!mBound) return;
+    private void sendMessage(int msg, Bundle data) throws RemoteException {
+        sendMessage(msg, data, null);
+    }
 
-        try {
-            Message message = Message.obtain(null, msg);
-            message.setData(data);
-            mService.send(message);
-        } catch (RemoteException e) {
-            e.printStackTrace();
+    private void sendMessage(int msg, Bundle data, @Nullable Messenger replyTo) throws RemoteException {
+        if (!mBound) return;
+        Message message = Message.obtain(null, msg);
+        message.setData(data);
+        if (replyTo != null) {
+            message.replyTo = replyTo;
         }
+        mService.send(message);
     }
 }

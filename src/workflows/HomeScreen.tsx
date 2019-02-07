@@ -8,8 +8,8 @@ import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPaus
 import {ServiceProviderRenderer} from "../components/renderers/ServiceProviderRenderer";
 import {BaseView} from "../components/views/BaseView";
 import {PhotoGrid} from "../components/views/PhotoGrid";
+import {SPICacheContainer} from "../kokoro/services/SPICache";
 import {RootReducerState} from "../reducers/slave-reducer";
-import {clearCache, SPICacheContainer} from "../services/SPICache";
 
 interface Props extends NavigationScreenProps {
     // injected
@@ -92,7 +92,8 @@ export class HomeScreenContainer extends React.Component<Props, State> {
     );
 
     private handleOnClearCachePress = async () => {
-        await clearCache();
+        // TODO move clear cache to kokoro
+        // await clearCache();
         this.setState({reloading: true})
     };
 }

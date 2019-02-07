@@ -6,7 +6,7 @@ import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_SECONDARY} from "../../colors";
 import {setStationsCurrentlyVisible} from "../../kokoro/reducers/stations";
 import {dispatch} from "../../native-modules/Kokoro";
-import {SPICacheContainer} from "../../services/SPICache";
+import {SPICacheContainer} from "../../kokoro/services/SPICache";
 import {getMedia} from "../../utilities";
 
 interface Props {
