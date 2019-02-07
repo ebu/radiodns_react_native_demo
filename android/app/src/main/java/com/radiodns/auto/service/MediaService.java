@@ -1,7 +1,10 @@
 package com.radiodns.auto.service;
 
 import android.arch.persistence.room.Room;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.media.MediaMetadata;
 import android.media.session.PlaybackState;
 import android.os.Bundle;
@@ -22,9 +25,13 @@ import com.radiodns.auto.RadioDNSAutoModule;
 import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.database.RadioDNSDatabase;
 import com.radiodns.auto.messages.AutoServiceMessages;
+import com.radiodns.auto.service.incoming_messages_handlers.KokoroMessageHandler;
+import com.radiodns.auto.service.incoming_messages_handlers.ModuleMessageHandler;
+import com.radiodns.kokoro.js_runtime.Kokoro;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -54,14 +61,24 @@ public class MediaService extends MediaBrowserServiceCompat {
     // Target for clients to send message to IncomingHandler.
     public Messenger mMessenger;
 
+    // Kokoro service connection
+    public Messenger kokoroMessenger;
+    private Messenger kokoroService;
+    private ServiceConnection kokoroConnection;
+    private boolean kokoroBound;
+    private boolean kokoroReady = false;
+    private LinkedList<Message> pendingMessages = new LinkedList<>();
+
     @Override
     public IBinder onBind(Intent intent) {
         // If the bind request comes from our Native Module (RadioDNSAutoModule class) use the binder
         // of the messenger. Otherwise (when android auto binds to this service for example) use the
         // default implementation (should we omit to do that, android auto would have a message binder
         // instead of the media browser its expects to have).
-        if (intent.getAction() != null && intent.getAction().equals(RadioDNSAutoModule.class.getName())) {
-            mMessenger = new Messenger(new IncomingMessageHandler(this));
+        if (intent.getAction() != null && (
+                intent.getAction().equals(RadioDNSAutoModule.class.getName())
+                        || intent.getAction().equals(Kokoro.class.getName()))) {
+            mMessenger = new Messenger(new ModuleMessageHandler(this));
             return mMessenger.getBinder();
         }
         return super.onBind(intent);
@@ -81,6 +98,34 @@ public class MediaService extends MediaBrowserServiceCompat {
 
         session.setCallback(new MediaSessionEventCallback(this));
         session.setActive(true);
+
+        // kokoro connection
+        kokoroConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName className, IBinder service) {
+                kokoroService = new Messenger(service);
+                kokoroBound = true;
+
+                try {
+                    Message msg = Message.obtain(null, AutoServiceMessages.REGISTER_CLIENT);
+                    msg.replyTo = mMessenger;
+                    kokoroService.send(msg);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected(ComponentName className) {
+                kokoroService = null;
+                kokoroBound = false;
+            }
+        };
+
+        kokoroMessenger = new Messenger(new KokoroMessageHandler(this));
+        Context context = getApplicationContext();
+        context.bindService(new Intent(context, Kokoro.class), kokoroConnection, Context.BIND_AUTO_CREATE);
+        context.startService(new Intent(context, Kokoro.class));
     }
 
     @Override
@@ -88,6 +133,10 @@ public class MediaService extends MediaBrowserServiceCompat {
         super.onDestroy();
         session.setActive(false);
         session.release();
+        if (kokoroBound) {
+            getApplicationContext().unbindService(kokoroConnection);
+            kokoroBound = false;
+        }
     }
 
     @Nullable
@@ -114,7 +163,7 @@ public class MediaService extends MediaBrowserServiceCompat {
     /**
      * Updates the state of the currently played station. Sets the available actions on the
      * session's PlaybackState and sets the current station metadata for the session.
-     *
+     * <p>
      * Sends the new state to the React Native module.
      *
      * @param state:  String state that will update the JS side.
@@ -131,8 +180,7 @@ public class MediaService extends MediaBrowserServiceCompat {
         data.putString("CHANNEL_ID", node.streamURI);
         data.putString("STATE", state);
         msg.setData(data);
-
-        sendMessage(msg);
+        sendKokoroMessage(msg);
     }
 
     /**
@@ -235,6 +283,17 @@ public class MediaService extends MediaBrowserServiceCompat {
         }
     }
 
+    public void sendKokoroMessage(Message msg) {
+        if (!kokoroReady) {
+            pendingMessages.add(msg);
+        }
+        try {
+            kokoroService.send(msg);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
+
     public MediaSessionCompat getSession() {
         return session;
     }
@@ -269,5 +328,13 @@ public class MediaService extends MediaBrowserServiceCompat {
 
     public RadioDNSDatabase getDb() {
         return db;
+    }
+
+    public LinkedList<Message> getPendingMessages() {
+        return pendingMessages;
+    }
+
+    public void setKokoroReady(boolean kokoroReady) {
+        this.kokoroReady = kokoroReady;
     }
 }

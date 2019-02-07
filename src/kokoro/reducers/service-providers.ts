@@ -1,5 +1,5 @@
 import {Action} from "redux";
-import {SPICacheContainer} from "../../services/SPICache";
+import {SPICacheContainer} from "../services/SPICache";
 
 // Types
 interface ServiceProvidersSetAction extends Action<typeof SET_SERVICE_PROVIDERS> {
