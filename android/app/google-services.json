@@ -1,0 +1,56 @@
+{
+  "project_info": {
+    "project_number": "416362104707",
+    "firebase_url": "https://radiodns-react-native-demo.firebaseio.com",
+    "project_id": "radiodns-react-native-demo",
+    "storage_bucket": "radiodns-react-native-demo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:416362104707:android:84ef7c74dba05d60",
+        "android_client_info": {
+          "package_name": "com.radiodns"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "416362104707-h7vaamf37h8ku9qirbrg9694829um261.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.radiodns",
+            "certificate_hash": "d9b13d7250acda17c3cf9840d97792414ba5bcf1"
+          }
+        },
+        {
+          "client_id": "416362104707-kgakjjho7tal77qkijlrutak9c1o81bn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD2oKx_WbbgRpd35bG77m0TcDsFsduLUt0"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "416362104707-kgakjjho7tal77qkijlrutak9c1o81bn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+
