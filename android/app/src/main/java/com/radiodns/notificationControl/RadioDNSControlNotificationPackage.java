@@ -1,4 +1,4 @@
-package com.radiodns.kokoro;
+package com.radiodns.notificationControl;
 
 import com.facebook.react.ReactPackage;
 import com.facebook.react.bridge.NativeModule;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class KokoroPackage implements ReactPackage {
+public class RadioDNSControlNotificationPackage implements ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactContext) {
@@ -20,7 +20,7 @@ public class KokoroPackage implements ReactPackage {
     public List<NativeModule> createNativeModules(ReactApplicationContext reactContext) {
         List<NativeModule> modules = new ArrayList<>();
 
-        modules.add(new KokoroModule(reactContext));
+        modules.add(new RadioDNSControlNotificationModule(reactContext));
 
         return modules;
     }

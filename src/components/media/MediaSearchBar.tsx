@@ -2,8 +2,7 @@ import * as React from "react";
 import {SearchBar} from "react-native-elements";
 import {connect} from "react-redux";
 import {COLOR_SECONDARY} from "../../colors";
-import {setStationsVisibility} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
+import {setStationsVisibility} from "../../reducers/stations";
 
 interface Props {
     // injected
@@ -36,7 +35,7 @@ class StationSearchBarContainer extends React.Component<Props> {
 
 export const MediaSearchBar = connect(
     () => ({}),
-    (() => ({
+    ((dispatch) => ({
         setStationsVisibility: (searchedStation: string) => dispatch(setStationsVisibility(searchedStation)),
     })),
 )(StationSearchBarContainer);

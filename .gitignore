@@ -56,6 +56,3 @@ buck-out/
 *.jsbundle
 /artifacts/
 /android/gradle.properties
-/android/app/src/main/assets/kokoro.js
-/artifactsKokoro/
-/android/app/src/main/res/raw/kokoro.js

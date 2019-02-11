@@ -3,7 +3,7 @@ import {Text} from "react-native-elements";
 import {connect} from "react-redux"
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY} from "../../colors";
-import {RootReducerState} from "../../reducers/slave-reducer";
+import {RootReducerState} from "../../reducers/root-reducer";
 
 interface Props {
     // injected props

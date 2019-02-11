@@ -1,4 +1,4 @@
-package com.radiodns.auto.service.incoming_messages_handlers;
+package com.radiodns.auto.service;
 
 import android.media.session.PlaybackState;
 import android.os.Handler;
@@ -7,16 +7,16 @@ import android.support.v4.media.session.PlaybackStateCompat;
 import android.util.Log;
 
 import com.radiodns.R;
+import com.radiodns.auto.database.AutoNode;
 import com.radiodns.auto.messages.AutoServiceMessages;
-import com.radiodns.auto.service.MediaService;
 
 /**
  * Incoming message handler class to handle communication from the React Native module and this service.
  */
-public class ModuleMessageHandler extends Handler {
+public class IncomingMessageHandler extends Handler {
     private MediaService service;
 
-    public ModuleMessageHandler(MediaService service) {
+    public IncomingMessageHandler(MediaService service) {
         this.service = service;
     }
 

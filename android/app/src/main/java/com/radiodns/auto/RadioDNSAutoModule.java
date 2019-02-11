@@ -50,14 +50,14 @@ public class RadioDNSAutoModule extends ReactContextBaseJavaModule {
                 case AutoServiceMessages.SEND_NEW_PLAYER_STATE_EVENT:
                     params.putString("CHANNEL_ID", msg.getData().getString("CHANNEL_ID"));
                     params.putString("STATE", msg.getData().getString("STATE"));
-                    sendEvent("UPDATE_STATE", params);
+                    sendEvent("updateState", params);
                     break;
                 case AutoServiceMessages.SEND_PLAY_FROM_SEARCH_STRING:
                     params.putString("SEARCH_STRING", msg.getData().getString("SEARCH_STRING"));
-                    sendEvent("PLAY_FROM_SEARCH_STRING", params);
+                    sendEvent("playFromSearchString", params);
                     break;
                 case AutoServiceMessages.SEND_PLAY_RANDOM:
-                    sendEvent("PLAY_RANDOM", params);
+                    sendEvent("playRandom", params);
                     break;
                 default:
                     super.handleMessage(msg);

@@ -4,9 +4,8 @@ import {NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_SECONDARY} from "../../colors";
-import {setStationsCurrentlyVisible} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
-import {SPICacheContainer} from "../../kokoro/services/SPICache";
+import {setStationsCurrentlyVisible} from "../../reducers/stations";
+import {SPICacheContainer} from "../../services/SPICache";
 import {getMedia} from "../../utilities";
 
 interface Props {
@@ -90,7 +89,7 @@ class ServiceProviderRendererContainer extends React.Component<Props, State> {
 
 export const ServiceProviderRenderer = connect(
     () => ({}),
-    (() => ({
+    ((dispatch) => ({
         loadStations: (stations: Service[]) => dispatch(setStationsCurrentlyVisible(stations)),
     })),
 )(ServiceProviderRendererContainer);

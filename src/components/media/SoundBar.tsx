@@ -2,10 +2,10 @@ import * as React from "react";
 import {View} from "react-native";
 import {Icon, Slider} from "react-native-elements";
 import {connect} from "react-redux";
+import {Dispatch} from "redux";
 import {COLOR_SECONDARY} from "../../colors";
-import {setVolume} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
-import {RootReducerState} from "../../reducers/slave-reducer";
+import {RootReducerState} from "../../reducers/root-reducer";
+import {setVolume} from "../../reducers/stations";
 
 interface Props {
     // injected props
@@ -44,7 +44,7 @@ export const SoundBar = connect(
     (state: RootReducerState) => ({
         volume: state.stations.volume,
     }),
-    () => ({
+    (dispatch: Dispatch) => ({
         setVolume: (volume: number) => dispatch(setVolume(volume)),
     }),
 )(SoundBarContainer);

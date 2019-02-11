@@ -13,7 +13,7 @@ export interface ServiceProvidersReducerState {
 }
 
 // Actions
-const SET_SERVICE_PROVIDERS = "radiodns_react_native_technical_demo/kokoro/service-providers/SET_SERVICE_PROVIDERS";
+const SET_SERVICE_PROVIDERS = "radiodns_react_native_technical_demo/service-providers/SET_SERVICE_PROVIDERS";
 
 // Reducer
 export const SERVICE_PROVIDERS_REDUCER_DEFAULT_STATE: ServiceProvidersReducerState = {

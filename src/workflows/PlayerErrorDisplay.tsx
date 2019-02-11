@@ -2,13 +2,13 @@ import * as React from "react";
 import {View} from "react-native";
 import {Icon} from "react-native-elements";
 import {connect} from "react-redux";
+import {Dispatch} from "redux";
 import {COLOR_DANGER, COLOR_PRIMARY} from "../colors";
 import {MediaPlayNextButton} from "../components/buttons/MediaPlayNextButton";
 import {MediaPlayPreviousButton} from "../components/buttons/MediaPlayPreviousButton";
 import {TextDanger} from "../components/texts/TextDanger";
-import {setNextStation, setPreviousStation} from "../kokoro/reducers/stations";
-import {dispatch} from "../native-modules/Kokoro";
-import {RootReducerState} from "../reducers/slave-reducer";
+import {RootReducerState} from "../reducers/root-reducer";
+import {setNextStation, setPreviousStation} from "../reducers/stations";
 
 interface Props {
     // injected
@@ -56,7 +56,7 @@ class PlayerErrorDisplayContainer extends React.Component<Props> {
 
 export const PlayerErrorDisplay = connect(
     (state: RootReducerState) => ({error: state.stations.error}),
-    (() => ({
+    ((dispatch: Dispatch) => ({
         onNextPressed: () => dispatch(setNextStation()),
         onPreviousPressed: () => dispatch(setPreviousStation()),
     })),

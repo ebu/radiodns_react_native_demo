@@ -3,9 +3,8 @@ import {ActivityIndicator, View} from "react-native";
 import {connect} from "react-redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../../colors";
-import {setPausedState} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
-import {RootReducerState} from "../../reducers/slave-reducer";
+import {RootReducerState} from "../../reducers/root-reducer";
+import {setPausedState} from "../../reducers/stations";
 import {IconButton} from "../buttons/IconButton";
 import {MediaPlayNextButton} from "../buttons/MediaPlayNextButton";
 import {MediaPlayPreviousButton} from "../buttons/MediaPlayPreviousButton";
@@ -62,7 +61,7 @@ export const MediaControls = connect(
         paused: state.stations.paused,
         loading: state.stations.loading,
     }),
-    (() => ({
+    ((dispatch) => ({
         setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
     })),
 )(MediaControlsContainer);

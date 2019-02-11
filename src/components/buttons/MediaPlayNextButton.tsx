@@ -1,7 +1,7 @@
 import * as React from "react";
 import {connect} from "react-redux";
-import {setNextStation} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
+import {Dispatch} from "redux";
+import {setNextStation} from "../../reducers/stations";
 import {IconButton} from "./IconButton";
 
 interface Props {
@@ -29,7 +29,7 @@ const MediaPlayNextButtonContainer: React.FC<Props> = (props) => (
 
 export const MediaPlayNextButton = connect(
     () => ({}),
-    (() => ({
+    ((dispatch: Dispatch) => ({
         onNextPressed: () => dispatch(setNextStation()),
     })),
 )(MediaPlayNextButtonContainer);

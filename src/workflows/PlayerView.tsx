@@ -4,6 +4,7 @@ import {Text} from "react-native-elements";
 import GestureRecognizer from "react-native-swipe-gestures";
 import {NavigationScreenConfig, NavigationScreenOptions, NavigationScreenProps} from "react-navigation";
 import {connect} from "react-redux";
+import {Dispatch} from "redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_PRIMARY, COLOR_SECONDARY} from "../colors";
 import {MediaControls} from "../components/media/MediaControls";
@@ -11,9 +12,8 @@ import {SoundBar} from "../components/media/SoundBar";
 import {BigText} from "../components/texts/BigText";
 import {RadioStationTitle} from "../components/titles/RadioStationTitle";
 import {BaseView} from "../components/views/BaseView";
-import {setNextStation, setPreviousStation} from "../kokoro/reducers/stations";
-import {dispatch} from "../native-modules/Kokoro";
-import {RootReducerState} from "../reducers/slave-reducer";
+import {RootReducerState} from "../reducers/root-reducer";
+import {setNextStation, setPreviousStation} from "../reducers/stations";
 import {getMedia} from "../utilities";
 import {PlayerErrorDisplay} from "./PlayerErrorDisplay";
 
@@ -71,7 +71,7 @@ export const PlayerView = connect(
     (state: RootReducerState) => ({
         activeStation: state.stations.activeStation,
     }),
-    (() => ({
+    ((dispatch: Dispatch) => ({
         onNextPressed: () => dispatch(setNextStation()),
         onPreviousPressed: () => dispatch(setPreviousStation()),
     })),

@@ -8,9 +8,8 @@ import {FloatingMediaControlsButton} from "../components/media/FloatingMediaPaus
 import {MediaSearchBar} from "../components/media/MediaSearchBar";
 import {StationItemRenderer} from "../components/renderers/StationItemRenderer";
 import {BaseView} from "../components/views/BaseView";
-import {setActiveStation, setStationPlaylist} from "../kokoro/reducers/stations";
-import {dispatch} from "../native-modules/Kokoro";
-import {RootReducerState} from "../reducers/slave-reducer";
+import {RootReducerState} from "../reducers/root-reducer";
+import {setActiveStation, setStationPlaylist} from "../reducers/stations";
 
 interface Props extends NavigationScreenProps {
     // injected
@@ -67,7 +66,7 @@ export const StationsView = connect(
         stations: state.stations.stations_currently_visible,
         searchedStation: state.stations.searchedStation,
     }),
-    (() => ({
+    ((dispatch) => ({
         setActiveStation: (station: Service) => dispatch(setActiveStation(station)),
         setStationPlaylist: (stations: Service[]) => dispatch(setStationPlaylist(stations)),
     })),

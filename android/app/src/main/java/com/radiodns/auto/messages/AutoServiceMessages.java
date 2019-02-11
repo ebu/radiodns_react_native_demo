@@ -38,10 +38,6 @@ public class AutoServiceMessages {
      */
     public final static int SEND_PLAY_RANDOM = 7;
 
-    public final static int EMIT_MESSAGE = 8;
-
-    public final static int UPDATE_STATE = 9;
-
 
     // SIGNALS
     /**
@@ -64,12 +60,4 @@ public class AutoServiceMessages {
      * **SIGNAL** Signal to set the current channel id.
      */
     public final static int UPDATE_CURRENT_CHANNEL_ID = 103;
-    public static final int SET_EXO_PLAYER_URL = 10;
-    public static final int SET_PLAYER_IS_PLAYING = 11;
-    public static final int SET_PLAYER_VOLUME = 12;
-    public static final int SEND_EXO_PLAYER_LOADING_STATE = 13;
-    public static final int SEND_EXO_PLAYER_ERROR = 14;
-    public static final int KOKORO_READY = 15;
-    public static final int KOKORO_REGISTER_STATE_UPDATES = 16;
-    public static final int SEND_EXO_PLAYER_FINISHED = 17;
 }

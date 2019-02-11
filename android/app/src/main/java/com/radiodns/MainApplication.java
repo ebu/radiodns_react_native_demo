@@ -3,15 +3,16 @@ package com.radiodns;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.radiodns.auto.RadioDNSAutoPackage;
+import com.radiodns.exitApp.RadioDNSExitAppPackage;
+import com.radiodns.notificationControl.RadioDNSControlNotificationPackage;
+import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
+import com.brentvatne.react.ReactVideoPackage;
+import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
-import com.oblador.vectoricons.VectorIconsPackage;
-import com.radiodns.auto.RadioDNSAutoPackage;
-import com.radiodns.exitApp.RadioDNSExitAppPackage;
-import com.radiodns.kokoro.KokoroPackage;
-import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,10 +33,11 @@ public class MainApplication extends Application implements ReactApplication {
             return Arrays.<ReactPackage>asList(
                     new MainReactPackage(),
                     new RNGestureHandlerPackage(),
+                    new ReactVideoPackage(),
                     new VectorIconsPackage(),
                     new RadioDNSAutoPackage(),
-                    new RadioDNSExitAppPackage(),
-                    new KokoroPackage()
+                    new RadioDNSControlNotificationPackage(),
+                    new RadioDNSExitAppPackage()
             );
         }
 

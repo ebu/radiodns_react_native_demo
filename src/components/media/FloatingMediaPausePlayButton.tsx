@@ -5,9 +5,8 @@ import {Icon} from "react-native-elements";
 import {connect} from "react-redux";
 import {Service} from "spi_xml_file_parser/artifacts/src/models/parsed-si-file";
 import {COLOR_DANGER, COLOR_PRIMARY} from "../../colors";
-import {setNextStation, setPausedState, setPreviousStation} from "../../kokoro/reducers/stations";
-import {dispatch} from "../../native-modules/Kokoro";
-import {RootReducerState} from "../../reducers/slave-reducer";
+import {RootReducerState} from "../../reducers/root-reducer";
+import {setNextStation, setPausedState, setPreviousStation} from "../../reducers/stations";
 
 interface Props {
     // injected
@@ -68,7 +67,7 @@ export const FloatingMediaControlsButton = connect(
         loading: state.stations.loading,
         error: state.stations.error,
     }),
-    (() => ({
+    ((dispatch) => ({
         setPausedState: (paused: boolean) => dispatch(setPausedState(paused)),
         setNextStation: () => dispatch(setNextStation()),
         setPreviousStation: () => dispatch(setPreviousStation()),

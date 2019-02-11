@@ -53,6 +53,42 @@ export interface RadioDNSAuto {
     updateChannelId: (channelId: string) => void;
 }
 
+export enum Signal {
+    /**
+     * Signal stating that the media player has finished buffering the media and is now
+     * playing content.
+     */
+    UPDATE_MEDIA_STATE_TO_PLAYING = 100,
+
+    /**
+     * Signal stating that the media player has started buffering the media.
+     */
+    UPDATE_MEDIA_STATE_TO_BUFFERING = 101,
+
+    /**
+     * Signal stating that exo player cannot read the current station.
+     */
+    UPDATE_MEDIA_STATE_TO_ERROR = 102,
+}
+
+export enum Event {
+
+    /**
+     * Request from android auto to play a random music.
+     */
+    PLAY_RANDOM = "playRandom",
+
+    /**
+     * Request from android auto to play the song that matches best the provided string filter.
+     */
+    PLAY_FROM_SEARCH_STRING = "playFromSearchString",
+
+    /**
+     * Request from android auto to update the state of the application.
+     */
+    UPDATE_STATE = "updateState",
+}
+
 const RadioDNSAuto: RadioDNSAuto = NativeModules.RadioDNSAuto;
 
 export default RadioDNSAuto;
