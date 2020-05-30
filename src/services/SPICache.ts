@@ -39,6 +39,7 @@ const fetchAndPutInCache: (serviceProviderUrl: string) => Promise<SPICacheContai
     } else {
         const parsedSPI: RawSPIFile = xml2js(res.data, {compact: true}) as any;
         const {service, serviceProvider} = parsedSPI.serviceInformation.services;
+        console.log("SP", serviceProvider);
         cacheContainer = {
             expires: Date.now() + CACHE_SPI_MAX_AGE,
             stations: service ? rawServicesToStations(Array.isArray(service) ? service : [service]) : [],
@@ -134,18 +135,20 @@ const rawServiceToStation: (service: RawServiceWithBearer) => Station = (service
         longName: service.longName ? service.longName._text : "Unnamed station",
         shortDescription: service.shortDescription
             ? {
-                lang: service.shortDescription._attributes["xml:lang"],
+                lang: "N/A",
                 text: service.shortDescription._text,
             }
             : {
                 lang: "en-Us",
                 text: "No description to display.",
             },
-        stationLogos: service.mediaDescription ? service.mediaDescription.map((mediaDescription) => ({
-                ...mediaDescription.multimedia._attributes,
-                height: parseInt(mediaDescription.multimedia._attributes.height, 10),
-                width: parseInt(mediaDescription.multimedia._attributes.width, 10),
-            }))
+        stationLogos: service.mediaDescription ? service.mediaDescription
+                .filter((mediaDescription) => mediaDescription.multimedia !== undefined)
+                .map((mediaDescription) => ({
+                    ...mediaDescription.multimedia!._attributes,
+                    height: parseInt(mediaDescription.multimedia!._attributes.height, 10),
+                    width: parseInt(mediaDescription.multimedia!._attributes.width, 10),
+                }))
             : [],
         radiodns: {...service.radiodns._attributes},
     }
@@ -165,7 +168,7 @@ const rawServiceProviderToServiceProvider: (rawServiceProvider: RawServiceProvid
         }
         : [],
     shortName: rawServiceProvider.shortName ? {
-            lang: rawServiceProvider.shortName._attributes["xml:lang"],
+            lang: "N/A",
             text: rawServiceProvider.shortName._text,
         }
         : {
@@ -173,7 +176,7 @@ const rawServiceProviderToServiceProvider: (rawServiceProvider: RawServiceProvid
             text: "No short name to display.",
         },
     mediumName: rawServiceProvider.mediumName ? {
-            lang: rawServiceProvider.mediumName._attributes["xml:lang"],
+            lang: "N/A",
             text: rawServiceProvider.mediumName._text,
         }
         : {
@@ -181,7 +184,7 @@ const rawServiceProviderToServiceProvider: (rawServiceProvider: RawServiceProvid
             text: "No medium name to display.",
         },
     longName: rawServiceProvider.longName ? {
-            lang: rawServiceProvider.longName._attributes["xml:lang"],
+            lang: "N/A",
             text: rawServiceProvider.longName._text,
         }
         : {
@@ -189,17 +192,19 @@ const rawServiceProviderToServiceProvider: (rawServiceProvider: RawServiceProvid
             text: "No long name to display.",
         },
     shortDescription: rawServiceProvider.shortDescription ? {
-            lang: rawServiceProvider.shortDescription._attributes["xml:lang"],
+            lang: "N/A",
             text: rawServiceProvider.shortDescription._text,
         }
         : {
             lang: "en-Us",
             text: "No short description to display.",
         },
-    mediaDescription: rawServiceProvider.mediaDescription ? rawServiceProvider.mediaDescription.map((mediaDescription) => ({
-            ...mediaDescription.multimedia._attributes,
-            height: parseInt(mediaDescription.multimedia._attributes.height, 10),
-            width: parseInt(mediaDescription.multimedia._attributes.width, 10),
+    mediaDescription: rawServiceProvider.mediaDescription ? rawServiceProvider.mediaDescription
+            .filter((mediaDescription) => mediaDescription.multimedia !== undefined)
+            .map((mediaDescription) => ({
+            ...mediaDescription.multimedia!._attributes,
+            height: parseInt(mediaDescription.multimedia!._attributes.height, 10),
+            width: parseInt(mediaDescription.multimedia!._attributes.width, 10),
         }))
         : [],
 });

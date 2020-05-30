@@ -54,7 +54,7 @@ class PlayerErrorDisplayContainer extends React.Component<Props> {
     }
 }
 
-export const PlayerErrorDisplay = connect(
+export const PlayerErrorDisplay: React.ComponentType<Props> = connect(
     (state: RootReducerState) => ({error: state.stations.error}),
     ((dispatch: Dispatch) => ({
         onNextPressed: () => dispatch(setNextStation()),

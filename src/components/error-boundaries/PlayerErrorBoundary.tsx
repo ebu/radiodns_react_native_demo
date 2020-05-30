@@ -28,4 +28,4 @@ class PlayerErrorBoundaryContainer extends React.Component<Props> {
 
 export const PlayerErrorBoundary = connect(
     (state: RootReducerState) => ({error: state.stations.error}),
-)(PlayerErrorBoundaryContainer);
+)(PlayerErrorBoundaryContainer) as React.ComponentType<Props>;

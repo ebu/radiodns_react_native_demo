@@ -9,7 +9,8 @@
     "build:watch": "tsc --watch",
     "start:android": "npm run build && run-p build:watch run:android",
     "start:ios": "npm run build && run-p build:watch run:ios",
-    "lint": "tslint 'src/**/*'"
+    "lint": "tslint 'src/**/*'",
+    "reset-cache": "react-native start --reset-cache"
   },
   "dependencies": {
     "axios": "0.18.0",
@@ -44,7 +45,7 @@
     "react-test-renderer": "16.6.1",
     "tslint": "5.11.0",
     "tslint-react": "3.6.0",
-    "typescript": "3.2.2"
+    "typescript": "3.9.3"
   },
   "jest": {
     "preset": "react-native"

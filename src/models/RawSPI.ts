@@ -1,5 +1,3 @@
-import {DeclarationAttributes} from "xml-js";
-
 export type ArrayOrOne<T> = T[] | T;
 
 export interface RawLinkAttributes {
@@ -11,13 +9,10 @@ export interface RawLinkAttributes {
 
 export interface RawLocalizedText {
     _text: string;
-    _attributes: {
-        "xml:lang": string;
-    },
 }
 
 export interface RawMediaDescription {
-    multimedia: {
+    multimedia?: {
         _attributes: {
             height: string;
             type: string;
@@ -25,6 +20,9 @@ export interface RawMediaDescription {
             width: string;
         },
     },
+    shortDescription?: {
+        _text: string;
+    }
 }
 
 export interface RawServiceWithBearer extends RawService {
@@ -92,9 +90,6 @@ export interface RawServiceProvider {
 }
 
 export interface RawSPIFile {
-    _declaration: {
-        _attributes: DeclarationAttributes,
-    },
     serviceInformation: {
         services: {
             service?: ArrayOrOne<RawService>,
